@@ -1,6 +1,6 @@
 [package]
 name = "egui-desktop"
-version = "1.1.1"
+version = "0.1.1"
 edition = "2024"
 description = "Cross-platform desktop UI components for egui applications"
 license = "MIT"
