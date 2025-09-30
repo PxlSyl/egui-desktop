@@ -5,8 +5,8 @@ use egui::{
 use std::cell::RefCell;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use crate::menu::items::MenuItem;
 use crate::TitleBar;
+use crate::menu::items::MenuItem;
 
 // Global state for submenu management
 static SUBMENU_CLICK_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -244,7 +244,7 @@ impl TitleBar {
                     if menu_index < total_simple_menus {
                         // Simple menu item - trigger callback
                         if let Some((_, callback)) = self.menu_items.get(menu_index) {
-                            if let Some(ref callback) = callback {
+                            if let Some(callback) = callback {
                                 callback();
                             }
                         }
@@ -534,7 +534,7 @@ impl TitleBar {
 
             // Handle click
             if response.clicked() {
-                if let Some(ref callback) = callback {
+                if let Some(callback) = callback {
                     callback();
                 }
             }
