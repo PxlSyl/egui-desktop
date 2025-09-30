@@ -1,4 +1,4 @@
-# egui-desktop-ui
+# egui-desktop
 
 A comprehensive desktop UI framework for egui applications with native window decorations, advanced theming, and cross-platform desktop integration.
 
@@ -107,7 +107,7 @@ For more details about the CLI and generated project structure, see the [CLI REA
 ### Basic Usage
 
 ```rust
-use egui_desktop_ui::{TitleBar, apply_native_rounded_corners_to_window, render_resize_handles};
+use egui_desktop::{TitleBar, apply_native_rounded_corners_to_window, render_resize_handles};
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
@@ -153,7 +153,7 @@ let title_bar = TitleBar::new("My App")
 ### Theme Customization
 
 ```rust
-use egui_desktop_ui::{TitleBar, ThemeMode, TitleBarTheme};
+use egui_desktop::{TitleBar, ThemeMode, TitleBarTheme};
 
 // Light theme
 TitleBar::new("My App")
@@ -188,7 +188,7 @@ TitleBar::new("My App")
 Add custom icons to the title bar with optional keyboard shortcuts:
 
 ```rust
-use egui_desktop_ui::{TitleBar, CustomIcon, KeyboardShortcut};
+use egui_desktop::{TitleBar, CustomIcon, KeyboardShortcut};
 
 TitleBar::new("My App")
     // Custom app icon (supports SVG, PNG, JPEG, etc.)
@@ -242,7 +242,7 @@ Icons can have keyboard shortcuts that trigger their callbacks:
 The framework supports independent title bars for each window in multi-window applications:
 
 ```rust
-use egui_desktop_ui::{TitleBar, TitleBarOptions};
+use egui_desktop::{TitleBar, TitleBarOptions};
 
 struct MultiWindowApp {
     main_window: TitleBar,
@@ -299,7 +299,7 @@ impl MultiWindowApp {
 ### Custom Title Bar Icons
 
 ```rust
-use egui_desktop_ui::{CustomIcon, ImageSource};
+use egui_desktop::{CustomIcon, ImageSource};
 
 // Add custom icons to the title bar (automatically positioned by platform)
 TitleBar::new("My App")
@@ -339,7 +339,7 @@ TitleBar::new("My App")
 ### Advanced Menu System with Submenus
 
 ```rust
-use egui_desktop_ui::{TitleBar, MenuItem, SubMenuItem, KeyboardShortcut};
+use egui_desktop::{TitleBar, MenuItem, SubMenuItem, KeyboardShortcut};
 
 // Create complex menu structures with submenus and shortcuts
 let file_menu = MenuItem::new("File")
@@ -459,7 +459,7 @@ The keyboard navigation follows platform conventions:
 The framework supports simple, string-based keyboard shortcuts:
 
 ```rust
-use egui_desktop_ui::KeyboardShortcut;
+use egui_desktop::KeyboardShortcut;
 
 // Simple shortcuts with string parsing
 KeyboardShortcut::parse("s")                  // Single key
@@ -521,7 +521,7 @@ KeyboardShortcut::parse("ctrl+-")             // Ctrl+-
 ### Platform-Specific Title Visibility
 
 ```rust
-use egui_desktop_ui::{TitleBar, TitleBarOptions};
+use egui_desktop::{TitleBar, TitleBarOptions};
 
 // Control title visibility per platform
 TitleBar::new(
@@ -741,7 +741,7 @@ This global state allows the framework to:
 
 ```toml
 [dependencies]
-egui_desktop_ui = { path = "path/to/egui-desktop-ui" }
+egui_desktop = { path = "path/to/egui-desktop" }
 egui_extras = { version = "0.32", features = ["all_loaders"] }
 ```
 
