@@ -1,0 +1,79 @@
+name: Auto-bump version and tag
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Read current version from Cargo.toml
+        id: read_ver
+        shell: bash
+        run: |
+          CURR=$(grep -m1 '^version\s*=\s*"' Cargo.toml | sed -E 's/.*"([^\"]+)".*/\1/')
+          echo "current=$CURR" >> $GITHUB_OUTPUT
+
+      - name: Compute next patch version
+        id: calc_ver
+        shell: bash
+        run: |
+          IFS='.' read -r MA MI PA <<<'${{ steps.read_ver.outputs.current }}'
+          if [[ -z "$MA" || -z "$MI" || -z "$PA" ]]; then
+            echo "Could not parse version '${{ steps.read_ver.outputs.current }}'" >&2
+            exit 1
+          fi
+          NEXT_PA=$((PA + 1))
+          NEXT_VER="$MA.$MI.$NEXT_PA"
+          echo "next=$NEXT_VER" >> $GITHUB_OUTPUT
+
+      - name: Update Cargo.toml version
+        shell: bash
+        run: |
+          NEXT='${{ steps.calc_ver.outputs.next }}'
+          sed -i -E "0,/^version\s*=\s*\".*\"/s//version = \"$NEXT\"/" Cargo.toml
+          echo "Bumped version to $NEXT"
+
+      - name: Commit version bump
+        shell: bash
+        run: |
+          NEXT='${{ steps.calc_ver.outputs.next }}'
+          if git diff --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git add Cargo.toml
+          git commit -m "chore: auto-bump version to $NEXT [skip ci]"
+
+      - name: Create tag
+        if: success()
+        shell: bash
+        run: |
+          NEXT='${{ steps.calc_ver.outputs.next }}'
+          git tag "v$NEXT"
+
+      - name: Push commit and tag
+        if: success()
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git push origin HEAD
+          git push origin --tags
