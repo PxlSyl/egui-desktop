@@ -1,0 +1,58 @@
+name: Publish crate and create GitHub release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Show versions
+        run: |
+          rustc -V
+          cargo -V
+
+      - name: Ensure tag matches Cargo.toml version
+        id: version_check
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          # Expect tags like v0.1.2
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Tag $TAG must look like v0.1.2" >&2
+            exit 1
+          fi
+          TOML_VER=$(grep -m1 '^version\s*=\s*"' Cargo.toml | sed -E 's/.*"([^"]+)".*/\1/')
+          TAG_VER="${TAG#v}"
+          echo "Cargo.toml version: $TOML_VER"
+          echo "Tag version:       $TAG_VER"
+          if [ "$TOML_VER" != "$TAG_VER" ]; then
+            echo "Version mismatch: tag=$TAG_VER, Cargo.toml=$TOML_VER" >&2
+            exit 1
+          fi
+
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          cargo publish --verbose
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
