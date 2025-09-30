@@ -1,4 +1,4 @@
-name: Auto-bump version and tag
+name: Auto-bump version (PR)
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   bump:
@@ -51,29 +52,14 @@ jobs:
           sed -i -E "0,/^version\s*=\s*\".*\"/s//version = \"$NEXT\"/" Cargo.toml
           echo "Bumped version to $NEXT"
 
-      - name: Commit version bump
-        shell: bash
-        run: |
-          NEXT='${{ steps.calc_ver.outputs.next }}'
-          if git diff --quiet; then
-            echo "No changes to commit"
-            exit 0
-          fi
-          git add Cargo.toml
-          git commit -m "chore: auto-bump version to $NEXT [skip ci]"
-
-      - name: Create tag
-        if: success()
-        shell: bash
-        run: |
-          NEXT='${{ steps.calc_ver.outputs.next }}'
-          git tag "v$NEXT"
-
-      - name: Push commit and tag
-        if: success()
-        shell: bash
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          git push origin HEAD
-          git push origin --tags
+      - name: Create PR with version bump
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore: auto-bump version to ${{ steps.calc_ver.outputs.next }}"
+          branch: bump/version-${{ steps.calc_ver.outputs.next }}
+          title: "chore: auto-bump version to ${{ steps.calc_ver.outputs.next }}"
+          body: |
+            This PR bumps the crate version to `${{ steps.calc_ver.outputs.next }}`.
+            Merging will trigger the publish workflow.
+          add-paths: |
+            Cargo.toml

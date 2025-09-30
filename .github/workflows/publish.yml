@@ -1,14 +1,17 @@
 name: Publish crate and create GitHub release
 
 on:
-  workflow_run:
-    workflows: ["Auto-bump version and tag"]
-    types: [completed]
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+      - master
   workflow_dispatch:
 
 jobs:
   publish:
     runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
