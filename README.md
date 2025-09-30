@@ -76,11 +76,11 @@ The easiest way to get started is using our CLI tool that generates a complete s
 #### Installation
 
 ```bash
-# Install the CLI globally
-cargo install --path cli
+# Install the CLI globally from crates.io
+cargo install egui-desktop-cli
 
-# Or if published on crates.io (future):
-# cargo install egui-desktop-cli
+# Or install from local development:
+# cargo install --path cli
 ```
 
 #### Usage
@@ -586,8 +586,8 @@ TitleBar::new(
 The easiest way to see all features in action is to generate a complete project:
 
 ```bash
-# Install CLI (if not already installed)
-cargo install --path cli
+# Install CLI from crates.io (if not already installed)
+cargo install egui-desktop-cli
 
 # Generate and run demo project
 egui-desktop mon-demo-projet
@@ -741,8 +741,10 @@ This global state allows the framework to:
 
 ```toml
 [dependencies]
-egui_desktop = { path = "path/to/egui-desktop" }
+egui-desktop = "0.1.0"
 egui_extras = { version = "0.32", features = ["all_loaders"] }
+eframe = "0.32"
+egui = "0.32"
 ```
 
 2. Initialize in your app:
