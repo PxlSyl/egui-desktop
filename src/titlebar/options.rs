@@ -49,6 +49,8 @@ pub struct TitleBarOptions {
     pub show_maximize_button: Option<bool>,
     /// Show the minimize button.
     pub show_minimize_button: Option<bool>,
+    /// Spacing between custom icons in pixels.
+    pub icon_spacing: Option<f32>,
 }
 
 impl Default for TitleBarOptions {
@@ -76,6 +78,7 @@ impl Default for TitleBarOptions {
             show_close_button: None,
             show_maximize_button: None,
             show_minimize_button: None,
+            icon_spacing: None,
         }
     }
 }
@@ -214,6 +217,12 @@ impl TitleBarOptions {
     /// Show or hide the minimize button.
     pub fn with_show_minimize_button(mut self, show: bool) -> Self {
         self.show_minimize_button = Some(show);
+        self
+    }
+
+    /// Set spacing between custom icons in pixels.
+    pub fn with_icon_spacing(mut self, spacing: f32) -> Self {
+        self.icon_spacing = Some(spacing);
         self
     }
 }

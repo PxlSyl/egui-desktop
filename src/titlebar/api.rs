@@ -313,7 +313,7 @@ impl TitleBar {
         }
 
         let icon_size = 16.0;
-        let spacing = 4.0;
+        let spacing = self.icon_spacing;
         let icon_height = 28.0; // Standard icon height
 
         // Calculate total width needed for all icons + extra spacing

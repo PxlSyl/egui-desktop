@@ -153,6 +153,8 @@ pub struct TitleBar {
     // Per custom icon animation states (kept aligned with custom_icons)
     /// Per-icon animation state list aligned with `custom_icons`.
     pub icon_animation_states: Vec<IconAnimationState>,
+    /// Spacing between custom icons in pixels.
+    pub icon_spacing: f32,
 }
 
 impl TitleBar {
@@ -252,6 +254,7 @@ impl TitleBar {
             show_maximize_button: options.show_maximize_button.unwrap_or(true),
             show_minimize_button: options.show_minimize_button.unwrap_or(true),
             icon_animation_states: Vec::new(),
+            icon_spacing: options.icon_spacing.unwrap_or(4.0),
         };
 
         title_bar
