@@ -1,14 +1,33 @@
 [package]
 name = "egui-desktop"
-version = "0.1.4"
+version = "0.1.5"
 edition = "2024"
 description = "Cross-platform desktop UI components for egui applications"
 license = "MIT"
 repository = "https://github.com/PxlSyl/egui-desktop"
+readme = "README.md"
+homepage = "https://github.com/PxlSyl/egui-desktop"
+documentation = "https://docs.rs/egui-desktop"
+keywords = ["egui", "desktop", "gui", "widgets", "ui"]
+categories = ["gui", "graphics"]
+exclude = ["target/*", "**/target/*", "**/.github/*", "**/.vscode/*", "**/.idea/*", "**/node_modules/*", "**/bin/*", "**/sea-package/*"]
+
+[badges]
+maintenance = { status = "actively-developed" }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = [
+    "-Dwarnings",
+    "-Wmissing-docs",
+    "-Wrustdoc::broken_intra_doc_links",
+    "-Wrustdoc::private_intra_doc_links",
+]
 
 [dependencies]
 egui = "0.32"
 eframe = "0.32"
+
 egui_extras = { version = "0.32", features = ["all_loaders"] }
 raw-window-handle = "0.6"
 lazy_static = "1.4"
