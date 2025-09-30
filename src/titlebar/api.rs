@@ -459,6 +459,7 @@ impl TitleBar {
         }
     }
 
+    /// Get the configured app icon, or a built-in default icon.
     pub fn get_app_icon(&self) -> ImageSource<'static> {
         self.app_icon
             .clone()

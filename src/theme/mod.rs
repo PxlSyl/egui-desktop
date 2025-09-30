@@ -1,35 +1,61 @@
 use egui::{Color32, Visuals};
 
+/// Public API helpers for working with themes.
 pub mod api;
 
+/// Theme mode selection for the title bar and related UI.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum ThemeMode {
+    /// Light appearance.
     Light,
+    /// Dark appearance.
     Dark,
+    /// Follow the operating system preference.
     System,
 }
 
+/// Colors and dimensions used to render the title bar and menus.
 pub struct TitleBarTheme {
+    /// Window/title bar background color.
     pub background_color: Color32,
+    /// Hover background color for interactive elements.
     pub hover_color: Color32,
+    /// Hover color for the close button (usually red-ish).
     pub close_hover_color: Color32,
+    /// Icon color for the close button (normal state).
     pub close_icon_color: Color32,
+    /// Icon color for the maximize button.
     pub maximize_icon_color: Color32,
+    /// Icon color for the restore button.
     pub restore_icon_color: Color32,
+    /// Icon color for the minimize button.
     pub minimize_icon_color: Color32,
+    /// Title text color.
     pub title_color: Color32,
+    /// Menu text color.
     pub menu_text_color: Color32,
+    /// Menu text size in points.
     pub menu_text_size: f32,
+    /// Menu hover background color.
     pub menu_hover_color: Color32,
+    /// Highlight color used for keyboard selection in menus.
     pub keyboard_selection_color: Color32,
     // Submenu customization
+    /// Submenu background color.
     pub submenu_background_color: Color32,
+    /// Submenu text color.
     pub submenu_text_color: Color32,
+    /// Submenu text size in points.
     pub submenu_text_size: f32,
+    /// Submenu hover background color.
     pub submenu_hover_color: Color32,
+    /// Color for disabled submenu items.
     pub submenu_disabled_color: Color32,
+    /// Color for displaying keyboard shortcuts in submenus.
     pub submenu_shortcut_color: Color32,
+    /// Submenu border color.
     pub submenu_border_color: Color32,
+    /// Highlight color for keyboard selection in submenus.
     pub submenu_keyboard_selection_color: Color32,
 }
 
@@ -43,8 +69,10 @@ pub trait ThemeProvider: Send + Sync {
     fn list_available_themes(&self) -> Vec<String>;
 }
 
+/// Theme-related errors.
 #[derive(Debug)]
 pub enum ThemeError {
+    /// Requested theme or id could not be found.
     ThemeNotFound,
 }
 
@@ -55,6 +83,7 @@ impl Default for TitleBarTheme {
 }
 
 impl TitleBarTheme {
+    /// Built-in light theme.
     pub fn light() -> Self {
         Self {
             background_color: Color32::WHITE,
@@ -80,6 +109,7 @@ impl TitleBarTheme {
         }
     }
 
+    /// Built-in dark theme.
     pub fn dark() -> Self {
         Self {
             background_color: Color32::from_rgb(30, 30, 30),
@@ -105,6 +135,7 @@ impl TitleBarTheme {
         }
     }
 
+    /// Light theme with selected fields overridden.
     pub fn light_with_overrides(
         background_color: Option<Color32>,
         hover_color: Option<Color32>,
@@ -153,6 +184,7 @@ impl TitleBarTheme {
         }
     }
 
+    /// Dark theme with selected fields overridden.
     pub fn dark_with_overrides(
         background_color: Option<Color32>,
         hover_color: Option<Color32>,
@@ -204,7 +236,7 @@ impl TitleBarTheme {
 
 pub use ThemeMode::*;
 
-/// Detect if the system is using dark mode
+/// Detect if the system is using dark mode.
 pub fn detect_system_dark_mode() -> bool {
     #[cfg(target_os = "windows")]
     {

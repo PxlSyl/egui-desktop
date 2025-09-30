@@ -5,7 +5,7 @@ use std::ffi::c_void;
 mod platform {
     use super::*;
     use windows::Win32::Foundation::HWND;
-    use windows::Win32::Graphics::Dwm::{DwmSetWindowAttribute, DWMWINDOWATTRIBUTE};
+    use windows::Win32::Graphics::Dwm::{DWMWINDOWATTRIBUTE, DwmSetWindowAttribute};
 
     const DWMWA_WINDOW_CORNER_PREFERENCE: DWMWINDOWATTRIBUTE = DWMWINDOWATTRIBUTE(33);
     const DWMWCP_ROUND: u32 = 2;
@@ -41,7 +41,7 @@ mod platform {
 #[cfg(target_os = "macos")]
 mod platform {
     use super::*;
-    use cocoa::base::{id, nil, YES};
+    use cocoa::base::{YES, id, nil};
     use objc::{msg_send, sel, sel_impl};
 
     pub fn apply_native_rounded_corners(ptr: *mut c_void) -> Result<(), Box<dyn Error>> {
@@ -94,6 +94,10 @@ mod platform {
     }
 }
 
+/// Try to apply native rounded corners to the OS window represented by `ptr`.
+///
+/// The pointer type and semantics depend on the platform (e.g. HWND on Windows,
+/// NSView on macOS). Returns `Ok(())` on success or an error with details.
 pub fn apply_native_rounded_corners(ptr: *mut c_void) -> Result<(), Box<dyn Error>> {
     #[cfg(target_os = "windows")]
     {

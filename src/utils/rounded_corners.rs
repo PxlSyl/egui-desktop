@@ -2,7 +2,7 @@ use eframe::Frame;
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use std::{ffi::c_void, sync::Once};
 
-use crate::os::apply_native_rounded_corners;
+use crate::utils::os::apply_native_rounded_corners;
 
 /// Applies native rounded corners to the window if supported on the current platform.
 /// This should be called once after the window is created.

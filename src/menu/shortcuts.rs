@@ -7,22 +7,35 @@ lazy_static::lazy_static! {
     static ref SHORTCUT_STATES: Mutex<HashMap<String, bool>> = Mutex::new(HashMap::new());
 }
 
-/// Keyboard shortcut for menu items
+/// Keyboard shortcut for menu items.
+///
+/// Combines a primary `egui::Key` with optional modifier keys. Use
+/// [`KeyboardShortcut::from_string`] to parse user-friendly strings like
+/// "ctrl+shift+p" or create it programmatically via [`KeyboardShortcut::new`].
 #[derive(Debug, Clone)]
 pub struct KeyboardShortcut {
+    /// Primary key that triggers the shortcut (e.g. `Key::S`).
     pub key: Key,
+    /// Modifier state required for the shortcut (Ctrl/Cmd, Alt, Shift).
     pub modifiers: Modifiers,
 }
 
-/// Parse error for shortcut strings
+/// Parse error for shortcut strings.
+///
+/// Returned by [`KeyboardShortcut::from_string`] when the provided string
+/// contains an unknown key, unsupported modifier, or has the wrong format.
 #[derive(Debug, Clone)]
 pub enum ShortcutParseError {
+    /// Unknown or unsupported key token, e.g. "foobar".
     InvalidKey(String),
+    /// Unknown or unsupported modifier token, e.g. "hyper".
     InvalidModifier(String),
+    /// General formatting issue (e.g. empty string).
     InvalidFormat(String),
 }
 
 impl KeyboardShortcut {
+    /// Create a shortcut with a primary key and no modifiers.
     pub fn new(key: Key) -> Self {
         Self {
             key,
@@ -210,6 +223,7 @@ impl KeyboardShortcut {
         current_frame_pressed && !was_pressed
     }
 
+    /// Human-readable representation like "Ctrl+Shift+P".
     pub fn display_string(&self) -> String {
         let mut result = String::new();
 

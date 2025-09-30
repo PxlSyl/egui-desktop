@@ -39,6 +39,7 @@ impl TitleBar {
         }
     }
 
+    /// Render a macOS-style title bar with traffic light controls.
     pub fn render_macos_title_bar(&mut self, ctx: &Context) {
         let screen_rect = ctx.screen_rect();
         if screen_rect.width() < 100.0 || screen_rect.height() < 100.0 {
@@ -139,6 +140,7 @@ impl TitleBar {
         self.render_open_submenu(ctx);
     }
 
+    /// Render a platform-generic title bar (Windows/Linux-style).
     pub fn render_generic_title_bar(&mut self, ctx: &Context) {
         let screen_rect = ctx.screen_rect();
         if screen_rect.width() < 100.0 || screen_rect.height() < 100.0 {

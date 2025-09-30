@@ -28,72 +28,130 @@ pub enum CustomIcon {
     ),
 }
 
-/// Configuration for a custom icon button (internal use only)
+/// Configuration for a custom icon button (internal use only).
 pub struct CustomIconButton {
+    /// Icon kind to render.
     pub icon: CustomIcon,
+    /// Optional tooltip displayed on hover.
     pub tooltip: Option<String>,
+    /// Override hover background color.
     pub hover_color: Option<Color32>,
+    /// Override icon color.
     pub icon_color: Option<Color32>,
+    /// Optional click callback.
     pub callback: Option<Box<dyn Fn() + Send + Sync>>,
+    /// Optional keyboard shortcut for this icon.
     pub shortcut: Option<crate::KeyboardShortcut>,
 }
 
+/// Title bar state and configuration.
 pub struct TitleBar {
+    /// Optional title text.
     pub title: Option<String>,
+    /// Unique egui id for interactions.
     pub id: Id,
+    /// Background color of the bar.
     pub background_color: Color32,
+    /// Hover color for window controls.
     pub hover_color: Color32,
+    /// Hover color for the close button.
     pub close_hover_color: Color32,
+    /// Close icon color.
     pub close_icon_color: Color32,
+    /// Maximize icon color.
     pub maximize_icon_color: Color32,
+    /// Restore icon color.
     pub restore_icon_color: Color32,
+    /// Minimize icon color.
     pub minimize_icon_color: Color32,
+    /// Simple menu items (label, optional callback).
     pub menu_items: Vec<(String, Option<Box<dyn Fn() + Send + Sync>>)>,
+    /// Menus with submenus.
     pub menu_items_with_submenus: Vec<MenuItem>,
-    pub open_submenu: Option<usize>,    // Track which submenu is open
-    pub submenu_open_time: Option<f64>, // Time when submenu was opened
-    pub submenu_just_opened_frame: bool, // Prevent closing on the same frame it was opened
-    pub last_click_time: f64,           // Track when the last click happened
-    pub last_click_id: usize,           // Track the ID of the last click that opened submenu
-    pub menu_positions: Vec<f32>,       // Store x positions of menu items for submenu alignment
+    /// Index of currently open submenu.
+    pub open_submenu: Option<usize>,
+    /// Time when submenu was opened.
+    pub submenu_open_time: Option<f64>,
+    /// Guard to prevent immediate close after open in same frame.
+    pub submenu_just_opened_frame: bool,
+    /// Last click time used for overlay logic.
+    pub last_click_time: f64,
+    /// Monotonic id of last click used to open submenu.
+    pub last_click_id: usize,
+    /// Cached x positions for submenu alignment.
+    pub menu_positions: Vec<f32>,
+    /// Custom icon buttons shown on the right.
     pub custom_icons: Vec<CustomIconButton>,
+    /// Optional app icon displayed next to the title (Windows/Linux).
     pub app_icon: Option<ImageSource<'static>>,
+    /// Title text color.
     pub title_color: Color32,
+    /// Title font size in points.
     pub title_font_size: f32,
+    /// Selected theme mode for rendering.
     pub theme_mode: ThemeMode,
+    /// Whether to display title on macOS.
     pub show_title_on_macos: bool,
+    /// Whether to display title on Windows.
     pub show_title_on_windows: bool,
+    /// Whether to display title on Linux.
     pub show_title_on_linux: bool,
     // Keyboard navigation state
-    pub keyboard_navigation_active: bool, // Whether keyboard navigation is active
-    pub selected_menu_index: Option<usize>, // Currently selected menu item
-    pub selected_submenu_index: Option<usize>, // Currently selected submenu item (deprecated - use submenu_selections)
-    pub last_keyboard_nav_time: f64,           // Time of last keyboard navigation
-    pub force_open_child_subitem: Option<usize>, // When set, open child submenu for this subitem index
-    pub selected_child_submenu_index: Option<usize>, // Currently selected child submenu item (deprecated - use child_submenu_selections)
-    pub submenu_selections: std::collections::HashMap<usize, usize>, // Map submenu index to selected item index
-    pub child_submenu_selections: std::collections::HashMap<usize, usize>, // Map submenu index to selected child index
+    /// Whether keyboard navigation is active.
+    pub keyboard_navigation_active: bool,
+    /// Currently selected top-level menu index.
+    pub selected_menu_index: Option<usize>,
+    /// Currently selected submenu item index (deprecated; use `submenu_selections`).
+    pub selected_submenu_index: Option<usize>,
+    /// Time of last keyboard navigation.
+    pub last_keyboard_nav_time: f64,
+    /// When set, force-open child submenu for this subitem index.
+    pub force_open_child_subitem: Option<usize>,
+    /// Currently selected child submenu item (deprecated; use `child_submenu_selections`).
+    pub selected_child_submenu_index: Option<usize>,
+    /// Map submenu index to selected item index.
+    pub submenu_selections: std::collections::HashMap<usize, usize>,
+    /// Map submenu index to selected child index.
+    pub child_submenu_selections: std::collections::HashMap<usize, usize>,
+    /// Menu text color.
     pub menu_text_color: Color32,
+    /// Menu text size in points.
     pub menu_text_size: f32,
+    /// Menu hover background color.
     pub menu_hover_color: Color32,
+    /// Keyboard selection highlight color.
     pub keyboard_selection_color: Color32,
     // Submenu colors
+    /// Submenu background color.
     pub submenu_background_color: Color32,
+    /// Submenu text color.
     pub submenu_text_color: Color32,
+    /// Submenu text size in points.
     pub submenu_text_size: f32,
+    /// Submenu hover background color.
     pub submenu_hover_color: Color32,
+    /// Submenu disabled item color.
     pub submenu_disabled_color: Color32,
+    /// Submenu shortcut text color.
     pub submenu_shortcut_color: Color32,
+    /// Submenu border color.
     pub submenu_border_color: Color32,
+    /// Submenu keyboard selection highlight color.
     pub submenu_keyboard_selection_color: Color32,
     // Optional external theme provider
+    /// Optional external theme provider.
     pub theme_provider: Option<Box<dyn ThemeProvider + Send + Sync>>,
+    /// Current theme id, if any.
     pub current_theme_id: Option<String>,
     // Control button visibility
+    /// Whether to show the close button.
     pub show_close_button: bool,
+    /// Whether to show the maximize button.
     pub show_maximize_button: bool,
+    /// Whether to show the minimize button.
     pub show_minimize_button: bool,
     // Per custom icon animation states (kept aligned with custom_icons)
+    /// Per-icon animation state list aligned with `custom_icons`.
     pub icon_animation_states: Vec<IconAnimationState>,
 }
 
@@ -200,12 +258,16 @@ impl TitleBar {
     }
 }
 
-/// Public animation context passed to animated icon callbacks
+/// Public animation context passed to animated icon callbacks.
 #[derive(Clone, Copy)]
 pub struct AnimationCtx {
+    /// Absolute time in seconds.
     pub time: f64,
+    /// Delta time since last frame in seconds.
     pub delta_seconds: f32,
+    /// Whether the icon is hovered this frame.
     pub hovered: bool,
+    /// Whether the icon is pressed this frame.
     pub pressed: bool,
 }
 

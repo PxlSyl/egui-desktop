@@ -4,11 +4,16 @@ use egui::{
 
 use crate::TitleBar;
 
+/// Window control icon types used by the title bar.
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum WindowControlIcon {
+    /// Close the window.
     Close,
+    /// Maximize the window.
     Maximize,
+    /// Restore the window from maximized state.
     Restore,
+    /// Minimize the window.
     Minimize,
 }
 
@@ -121,6 +126,7 @@ impl TitleBar {
         );
     }
 
+    /// Render a macOS-style traffic light button.
     pub fn render_traffic_light(&self, ui: &mut Ui, color: Color32, size: f32) -> egui::Response {
         let button_size = Vec2::new(size, size);
         let (button_id, button_rect) = ui.allocate_space(button_size);

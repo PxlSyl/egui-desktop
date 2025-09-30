@@ -3,6 +3,7 @@ use egui::{
     ViewportCommand,
 };
 
+/// Render invisible viewport resize handles around the window.
 pub fn render_resize_handles(ctx: &Context) {
     let screen_rect = ctx.screen_rect();
     let resize_handle_size = 8.0;
