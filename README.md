@@ -87,7 +87,7 @@ cargo install egui-desktop-cli
 
 ```bash
 # Generate a new project
-egui-desktop mon-super-projet
+egui-desktop my-super-project
 
 # This creates a complete project with:
 # - Modular structure (main.rs, app.rs, theme_provider.rs, etc.)
