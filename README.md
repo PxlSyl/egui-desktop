@@ -10,6 +10,7 @@ A comprehensive desktop UI framework for egui applications with native window de
 
 - System theme detection may not work on all Linux distributions
 - Native rounded corners support varies by platform and window manager
+- Linux: Rounded corners are currently not supported 
 - Some advanced features may require specific OS versions or configurations
 
 We welcome feedback, bug reports, and contributions to help improve platform compatibility! Feel free to open pull requests or report issues - your input helps make this framework better for everyone.
@@ -752,9 +753,9 @@ Control whether the app title is displayed on each platform:
 
 ### Native Rounded Corners
 
-- **Windows**: Uses `DwmSetWindowAttribute` API
-- **macOS**: Uses `NSWindow.cornerRadius`
-- **Linux**: Detects X11/Wayland and applies appropriate shapes
+- Windows: Uses `DwmSetWindowAttribute` API
+- macOS: Uses `NSWindow` layer corner radius
+- Linux: Not supported for now. Contributions welcome to add a robust approach.
 
 ### Manual Resizing
 

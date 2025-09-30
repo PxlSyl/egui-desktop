@@ -24,15 +24,4 @@ windows = { version = "0.58", features = [
 cocoa = "0.26"
 objc = "0.2"
 
-[target.'cfg(target_os = "linux")'.dependencies]
-# X11 support
-x11 = "2.21"
-x11-dl = "2.2"
-# Wayland support
-wayland-client = "0.31"
-wayland-protocols = { version = "0.31", features = ["client"] }
-wayland-cursor = "0.31"
-# Linux system libraries
-libc = "0.2"
-
 [dev-dependencies]
