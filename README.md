@@ -321,6 +321,85 @@ TitleBar::new("My App")
     .show(ctx);
 ```
 
+### Animated Title Bar Icons
+
+You can add animated icons that the framework will drive every frame with timing, hover/press state, and theme colors.
+
+API overview:
+
+- `CustomIcon::Animated(Box<dyn Fn(&Painter, Rect, Color32, &mut IconAnimationState, AnimationCtx) + Send + Sync>)`
+- `CustomIcon::AnimatedUi(Box<dyn Fn(&mut Ui, Rect, Color32, &mut IconAnimationState, AnimationCtx) + Send + Sync>)`
+- `TitleBar::add_animated_icon(...)` and `TitleBar::add_animated_ui_icon(...)`
+- `IconAnimationState { hover_t, press_t, progress, last_time }`
+- `AnimationCtx { time, delta_seconds, hovered, pressed }`
+
+Notes:
+
+- Make your `TitleBar` persistent (store it in your app struct) so per-icon animation state is preserved across frames.
+- Clicks automatically request a repaint, so animations start immediately.
+- Theme colors are passed as `icon_color`; hover backgrounds use the title bar theme. Theme changes update these automatically.
+- You can override an icon color with `set_custom_icon_color(index, Some(color))`; pass `None` to return to theme-driven color.
+
+Painter-based example (minimal):
+
+```rust
+use egui_desktop::{TitleBar, TitleBarOptions};
+
+// Build once and store in your app struct
+let mut title_bar = TitleBar::new(TitleBarOptions::new().with_title("Animated"));
+
+title_bar = title_bar.add_animated_icon(
+    Box::new(|painter, rect, icon_color, state, actx| {
+        // Simple pulse driven by hover
+        let target = if actx.hovered { 1.0 } else { 0.0 };
+        state.progress += (target - state.progress) * (actx.delta_seconds * 6.0);
+        let r = rect.width().min(rect.height()) * (0.25 + 0.15 * state.progress);
+        painter.circle_filled(rect.center(), r, icon_color);
+    }),
+    Some(Box::new(|| println!("Animated icon clicked"))),
+    Some("Animated".to_string()),
+    None,
+);
+```
+
+Ui-based example (no Painter required) – sun→moon style:
+
+```rust
+title_bar = title_bar.add_animated_ui_icon(
+    Box::new(|ui, rect, icon_color, state, actx| {
+        let speed = 6.0;
+        let target = if actx.hovered { 1.0 } else { 0.0 };
+        state.progress += (target - state.progress) * (actx.delta_seconds * speed);
+        let mut child = ui.child_ui(rect, egui::Layout::default(), None);
+        let center = rect.center();
+        let size = rect.height().min(rect.width());
+        let radius = size * 0.35;
+        if state.progress < 0.5 {
+            let sun_p = 1.0 - (state.progress * 2.0);
+            child.painter().circle(center, radius * 0.8 * sun_p, icon_color, egui::Stroke::NONE);
+        } else {
+            let moon_p = (state.progress - 0.5) * 2.0;
+            child.painter().circle(center, radius, icon_color, egui::Stroke::NONE);
+            let offset = radius * 0.6 * moon_p;
+            let angle = std::f32::consts::FRAC_PI_4;
+            let mask_center = egui::Pos2::new(center.x + angle.cos() * offset, center.y - angle.sin() * offset);
+            child.painter().circle(mask_center, radius, ui.visuals().widgets.noninteractive.bg_fill, egui::Stroke::NONE);
+        }
+    }),
+    None,
+    Some("Theme".to_string()),
+    None,
+);
+```
+
+Theme-aware coloring:
+
+```rust
+title_bar.set_custom_icon_color(0, None); // use theme color
+// Or override:
+title_bar.set_custom_icon_color(0, Some(egui::Color32::from_rgb(255, 200, 0)));
+```
+
 **Platform-specific positioning:**
 
 - **Windows/Linux**: Icons appear to the left of window control buttons

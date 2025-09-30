@@ -1,8 +1,8 @@
 use egui::{Color32, Id, ImageSource, Painter};
 
-use crate::menu::items::MenuItem;
-use crate::theme::{detect_system_dark_mode, ThemeMode, ThemeProvider, TitleBarTheme};
 use crate::TitleBarOptions;
+use crate::menu::items::MenuItem;
+use crate::theme::{ThemeMode, ThemeProvider, TitleBarTheme, detect_system_dark_mode};
 
 /// Custom icon for the title bar
 pub enum CustomIcon {
@@ -10,6 +10,22 @@ pub enum CustomIcon {
     Image(ImageSource<'static>),
     /// Custom drawing function
     Drawn(Box<dyn Fn(&Painter, egui::Rect, Color32) + Send + Sync>),
+    /// Animated icon with framework-managed animation state and context
+    Animated(
+        Box<
+            dyn Fn(&Painter, egui::Rect, Color32, &mut IconAnimationState, AnimationCtx)
+                + Send
+                + Sync,
+        >,
+    ),
+    /// Animated icon that renders using Ui primitives instead of Painter
+    AnimatedUi(
+        Box<
+            dyn Fn(&mut egui::Ui, egui::Rect, Color32, &mut IconAnimationState, AnimationCtx)
+                + Send
+                + Sync,
+        >,
+    ),
 }
 
 /// Configuration for a custom icon button (internal use only)
@@ -77,6 +93,8 @@ pub struct TitleBar {
     pub show_close_button: bool,
     pub show_maximize_button: bool,
     pub show_minimize_button: bool,
+    // Per custom icon animation states (kept aligned with custom_icons)
+    pub icon_animation_states: Vec<IconAnimationState>,
 }
 
 impl TitleBar {
@@ -175,8 +193,31 @@ impl TitleBar {
             show_close_button: options.show_close_button.unwrap_or(true),
             show_maximize_button: options.show_maximize_button.unwrap_or(true),
             show_minimize_button: options.show_minimize_button.unwrap_or(true),
+            icon_animation_states: Vec::new(),
         };
 
         title_bar
     }
+}
+
+/// Public animation context passed to animated icon callbacks
+#[derive(Clone, Copy)]
+pub struct AnimationCtx {
+    pub time: f64,
+    pub delta_seconds: f32,
+    pub hovered: bool,
+    pub pressed: bool,
+}
+
+/// Per-icon animation state managed by the framework
+#[derive(Clone, Copy, Default)]
+pub struct IconAnimationState {
+    /// 0..1 smooth hover progress
+    pub hover_t: f32,
+    /// 0..1 smooth press progress
+    pub press_t: f32,
+    /// Last absolute time seen by this icon
+    pub last_time: f64,
+    /// Generic 0..1 progress you can drive from the callback
+    pub progress: f32,
 }

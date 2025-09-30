@@ -209,6 +209,52 @@ impl TitleBar {
             callback,
             shortcut,
         });
+        // Keep animation states aligned
+        if let CustomIcon::Animated(_) = self.custom_icons.last().unwrap().icon {
+            self.icon_animation_states.push(Default::default());
+        }
+        self
+    }
+
+    /// Add an animated icon with tooltip and optional callback/shortcut
+    pub fn add_animated_icon(
+        mut self,
+        draw: Box<
+            dyn Fn(
+                    &egui::Painter,
+                    egui::Rect,
+                    egui::Color32,
+                    &mut crate::titlebar::IconAnimationState,
+                    crate::titlebar::AnimationCtx,
+                ) + Send
+                + Sync,
+        >,
+        callback: Option<Box<dyn Fn() + Send + Sync>>,
+        tooltip: Option<String>,
+        shortcut: Option<crate::KeyboardShortcut>,
+    ) -> Self {
+        self = self.add_icon(CustomIcon::Animated(draw), callback, tooltip, shortcut);
+        self
+    }
+
+    /// Add an animated Ui-based icon (render via Ui) with tooltip and optional callback/shortcut
+    pub fn add_animated_ui_icon(
+        mut self,
+        draw: Box<
+            dyn Fn(
+                    &mut egui::Ui,
+                    egui::Rect,
+                    egui::Color32,
+                    &mut crate::titlebar::IconAnimationState,
+                    crate::titlebar::AnimationCtx,
+                ) + Send
+                + Sync,
+        >,
+        callback: Option<Box<dyn Fn() + Send + Sync>>,
+        tooltip: Option<String>,
+        shortcut: Option<crate::KeyboardShortcut>,
+    ) -> Self {
+        self = self.add_icon(CustomIcon::AnimatedUi(draw), callback, tooltip, shortcut);
         self
     }
 
@@ -261,7 +307,7 @@ impl TitleBar {
     ///
     /// This method renders all custom icon buttons automatically positioned
     /// based on the platform.
-    pub fn render_custom_icons(&self, ui: &mut Ui) {
+    pub fn render_custom_icons(&mut self, ui: &mut Ui) {
         if self.custom_icons.is_empty() {
             return;
         }
@@ -281,7 +327,16 @@ impl TitleBar {
 
         let mut current_x = icon_bar_rect.max.x - extra_spacing;
 
-        for (index, icon_button) in self.custom_icons.iter().enumerate() {
+        // Ensure states vector matches icons length
+        if self.icon_animation_states.len() < self.custom_icons.len() {
+            self.icon_animation_states
+                .resize(self.custom_icons.len(), Default::default());
+        }
+
+        let now = ui.input(|i| i.time);
+
+        for index in 0..self.custom_icons.len() {
+            let icon_button = &self.custom_icons[index];
             let icon_id = Id::new(format!("custom_icon_{}", index));
 
             // Create individual icon rect (positioned from right to left)
@@ -322,6 +377,64 @@ impl TitleBar {
                 CustomIcon::Drawn(draw_fn) => {
                     draw_fn(ui.painter(), icon_rect, icon_color);
                 }
+                CustomIcon::Animated(draw_fn) => {
+                    let hovered = response.hovered();
+                    let pressed = response.is_pointer_button_down_on();
+
+                    let state = &mut self.icon_animation_states[index];
+                    let prev_time = state.last_time;
+                    let dt = if prev_time == 0.0 {
+                        0.0
+                    } else {
+                        (now - prev_time) as f32
+                    };
+                    state.last_time = now;
+
+                    let speed = 8.0;
+                    let target_hover = if hovered { 1.0 } else { 0.0 };
+                    state.hover_t += (target_hover - state.hover_t) * (1.0 - (-speed * dt).exp());
+
+                    let target_press = if pressed { 1.0 } else { 0.0 };
+                    state.press_t += (target_press - state.press_t) * (1.0 - (-12.0 * dt).exp());
+
+                    let ctx = crate::titlebar::AnimationCtx {
+                        time: now,
+                        delta_seconds: dt,
+                        hovered,
+                        pressed,
+                    };
+
+                    draw_fn(ui.painter(), icon_rect, icon_color, state, ctx);
+                }
+                CustomIcon::AnimatedUi(draw_fn) => {
+                    let hovered = response.hovered();
+                    let pressed = response.is_pointer_button_down_on();
+
+                    let state = &mut self.icon_animation_states[index];
+                    let prev_time = state.last_time;
+                    let dt = if prev_time == 0.0 {
+                        0.0
+                    } else {
+                        (now - prev_time) as f32
+                    };
+                    state.last_time = now;
+
+                    let speed = 8.0;
+                    let target_hover = if hovered { 1.0 } else { 0.0 };
+                    state.hover_t += (target_hover - state.hover_t) * (1.0 - (-speed * dt).exp());
+
+                    let target_press = if pressed { 1.0 } else { 0.0 };
+                    state.press_t += (target_press - state.press_t) * (1.0 - (-12.0 * dt).exp());
+
+                    let ctx = crate::titlebar::AnimationCtx {
+                        time: now,
+                        delta_seconds: dt,
+                        hovered,
+                        pressed,
+                    };
+
+                    draw_fn(ui, icon_rect, icon_color, state, ctx);
+                }
             }
 
             // Handle click
@@ -329,6 +442,8 @@ impl TitleBar {
                 if let Some(ref callback) = icon_button.callback {
                     callback();
                 }
+                // Ensure the next frame runs so animations start immediately
+                ui.ctx().request_repaint();
             }
 
             // Move to next icon position (from right to left)

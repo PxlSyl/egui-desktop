@@ -16,3 +16,4 @@ Thumbs.db
 
 # Old monolithic starter file (replaced by modular structure)
 cli/src/egui_desktop_starter.rs
+examples/animated_theme_icon.rs
