@@ -3,6 +3,8 @@ use clap::Parser;
 use std::fs;
 use std::path::Path;
 
+const EGUI_DESKTOP_VERSION: &str = env!("CARGO_PKG_VERSION");
+
 #[derive(Parser)]
 #[command(name = "egui-desktop")]
 #[command(about = "Initialize a new egui-desktop project")]
@@ -64,12 +66,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-egui-desktop = {{ path = "../../" }}
+egui-desktop = "{}"
 egui_extras = {{ version = "0.32", features = ["all_loaders"] }}
 eframe = "0.32"
 egui = "0.32"
 "#,
-        cli.name
+        cli.name, EGUI_DESKTOP_VERSION
     );
 
     let cargo_toml_path = Path::new(&cli.name).join("Cargo.toml");

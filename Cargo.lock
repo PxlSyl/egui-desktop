@@ -874,7 +874,7 @@ dependencies = [
 
 [[package]]
 name = "egui-desktop"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "cocoa",
  "eframe",

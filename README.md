@@ -2,6 +2,15 @@
 
 A comprehensive desktop UI framework for egui applications with native window decorations, advanced theming, and cross-platform desktop integration.
 
+## 📸 Screenshots
+
+<div align="center">
+  <img src="screenshots/win1.png" alt="egui-desktop example 1" width="45%">
+  <img src="screenshots/win2.png" alt="egui-desktop example 2" width="45%">
+  <img src="screenshots/win3.png" alt="egui-desktop example 3" width="45%">
+  <img src="screenshots/win4.png" alt="egui-desktop example 4" width="45%">
+</div>
+
 ## ⚠️ Disclaimer
 
 **This project is currently in alpha version and under active development.** It may not be fully tested on all platforms. While we strive for cross-platform compatibility, some features may behave differently or have limitations on certain operating systems. Please test thoroughly in your target environments before using in production applications.
@@ -10,7 +19,7 @@ A comprehensive desktop UI framework for egui applications with native window de
 
 - System theme detection may not work on all Linux distributions
 - Native rounded corners support varies by platform and window manager
-- Linux: Rounded corners are currently not supported 
+- Linux: Rounded corners are currently not supported
 - Some advanced features may require specific OS versions or configurations
 
 We welcome feedback, bug reports, and contributions to help improve platform compatibility! Feel free to open pull requests or report issues - your input helps make this framework better for everyone.
@@ -108,12 +117,12 @@ For more details about the CLI and generated project structure, see the [CLI REA
 ### Basic Usage
 
 ```rust
-use egui_desktop::{TitleBar, apply_native_rounded_corners_to_window, render_resize_handles};
+use egui_desktop::{TitleBar, apply_rounded_corners, render_resize_handles};
 
 impl eframe::App for MyApp {
     fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
         // Apply native rounded corners (call once)
-        apply_native_rounded_corners_to_window(frame);
+        apply_rounded_corners(frame);
 
         // Render title bar with default light theme
         TitleBar::new("My App").show(ctx);
