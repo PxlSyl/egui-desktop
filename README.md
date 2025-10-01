@@ -26,7 +26,7 @@ We welcome feedback, bug reports, and contributions to help improve platform com
 
 ## 🎯 Goal
 
-As a developer who uses this framework to build my own desktop applications, I'm passionate about rust and egui and want to make desktop development easier for Rust programmers. This framework addresses the common pain points when building native-feeling desktop apps with egui and custom window bars:
+As a developer who uses this framework to build my own desktop applications, I'm passionate about rust and egui and want to make desktop development easier for Rust programmers. This framework addresses the common pain points when building native-feeling desktop apps with egui and custom title bars:
 
 - **Native integration**: Seamless window decorations and platform-specific behaviors
 - **Developer experience**: Simple APIs that handle complex cross-platform differences
