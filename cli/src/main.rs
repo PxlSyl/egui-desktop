@@ -70,6 +70,12 @@ egui-desktop = "{}"
 egui_extras = {{ version = "0.32", features = ["all_loaders"] }}
 eframe = "0.32"
 egui = "0.32"
+
+[profile.release]
+strip = true
+opt-level = "s"
+lto = true
+codegen-units = 1
 "#,
         cli.name, EGUI_DESKTOP_VERSION
     );

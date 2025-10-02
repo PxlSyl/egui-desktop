@@ -4,11 +4,22 @@ A comprehensive desktop UI framework for egui applications with native window de
 
 ## 📸 Screenshots
 
+### Windows
+
 <div align="center">
-  <img src="screenshots/win1.png" alt="egui-desktop example 1" width="45%">
-  <img src="screenshots/win2.png" alt="egui-desktop example 2" width="45%">
-  <img src="screenshots/win3.png" alt="egui-desktop example 3" width="45%">
-  <img src="screenshots/win4.png" alt="egui-desktop example 4" width="45%">
+  <img src="screenshots/win1.png" alt="egui-desktop Windows example 1" width="45%">
+  <img src="screenshots/win2.png" alt="egui-desktop Windows example 2" width="45%">
+  <img src="screenshots/win3.png" alt="egui-desktop Windows example 3" width="45%">
+  <img src="screenshots/win4.png" alt="egui-desktop Windows example 4" width="45%">
+</div>
+
+### macOS
+
+<div align="center">
+  <img src="screenshots/mac1.png" alt="egui-desktop macOS example 1" width="45%">
+  <img src="screenshots/mac2.png" alt="egui-desktop macOS example 2" width="45%">
+  <img src="screenshots/mac3.png" alt="egui-desktop macOS example 3" width="45%">
+  <img src="screenshots/mac4.png" alt="egui-desktop macOS example 4" width="45%">
 </div>
 
 ## ⚠️ Disclaimer

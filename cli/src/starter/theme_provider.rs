@@ -155,7 +155,7 @@ impl ThemeProvider for SimpleThemeProvider {
                 v.selection.stroke.color = egui::Color32::from_rgb(59, 130, 246);
                 v.selection.stroke.width = 2.0;
                 v.button_frame = true;
-                v.widgets.inactive.bg_fill = egui::Color32::from_rgb(220, 235, 255); // Plus sombre que blanc
+                v.widgets.inactive.bg_fill = egui::Color32::from_rgb(220, 235, 255);
                 v.widgets.inactive.fg_stroke =
                     egui::Stroke::new(1.0, egui::Color32::from_rgb(30, 64, 175));
                 v.widgets.hovered.bg_fill = egui::Color32::from_rgb(219, 234, 254);
@@ -207,7 +207,7 @@ impl ThemeProvider for SimpleThemeProvider {
                 v.selection.stroke.color = egui::Color32::from_rgb(16, 185, 129);
                 v.selection.stroke.width = 2.0;
                 v.button_frame = true;
-                v.widgets.inactive.bg_fill = egui::Color32::from_rgb(220, 252, 231); // Plus sombre que blanc
+                v.widgets.inactive.bg_fill = egui::Color32::from_rgb(220, 252, 231);
                 v.widgets.inactive.fg_stroke =
                     egui::Stroke::new(1.0, egui::Color32::from_rgb(22, 101, 52));
                 v.widgets.hovered.bg_fill = egui::Color32::from_rgb(209, 250, 229);
