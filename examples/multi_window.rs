@@ -1,5 +1,8 @@
 use eframe::egui;
-use egui_desktop::{apply_rounded_corners, render_resize_handles, TitleBar, TitleBarOptions};
+use egui_desktop::{
+    TitleBar, TitleBarOptions, apply_rounded_corners, apply_rounded_corners_to_viewport,
+    render_resize_handles,
+};
 use egui_extras::install_image_loaders;
 use std::sync::{Arc, Mutex};
 
@@ -162,6 +165,9 @@ impl eframe::App for MultiWindowApp {
                     return;
                 }
 
+                // Apply rounded corners to this viewport (if supported)
+                apply_rounded_corners_to_viewport(ctx);
+
                 // Settings window title bar
                 settings_title_bar.lock().unwrap().show(ctx);
 
@@ -234,6 +240,9 @@ impl eframe::App for MultiWindowApp {
                     *about_open.lock().unwrap() = false;
                     return;
                 }
+
+                // Apply rounded corners to this viewport (if supported)
+                apply_rounded_corners_to_viewport(ctx);
 
                 // About window title bar
                 about_title_bar.lock().unwrap().show(ctx);
