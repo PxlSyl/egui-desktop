@@ -260,62 +260,21 @@ Icons can have keyboard shortcuts that trigger their callbacks:
 
 ### Multi-Window Applications
 
-The framework supports independent title bars for each window in multi-window applications:
+See `examples/multi_window.rs` for a complete `egui` 0.32 / `eframe` sample that opens additional native windows (viewports) with their own `TitleBar` instances:
 
-```rust
-use egui_desktop::{TitleBar, TitleBarOptions};
-
-struct MultiWindowApp {
-    main_window: TitleBar,
-    settings_window: TitleBar,
-    about_window: TitleBar,
-}
-
-impl MultiWindowApp {
-    fn new() -> Self {
-        Self {
-            // Each window has its own independent TitleBar instance
-            main_window: TitleBar::new(TitleBarOptions::new()
-                .with_title("Main Window")
-                .with_show_close_button(true)
-                .with_show_maximize_button(true)
-                .with_show_minimize_button(true)),
-
-            settings_window: TitleBar::new(TitleBarOptions::new()
-                .with_title("Settings")
-                .with_show_close_button(true)
-                .with_show_maximize_button(false)  // Settings window can't be maximized
-                .with_show_minimize_button(false)), // Settings window can't be minimized
-
-            about_window: TitleBar::new(TitleBarOptions::new()
-                .with_title("About")
-                .with_show_close_button(true)
-                .with_show_maximize_button(false)
-                .with_show_minimize_button(false)),
-        }
-    }
-
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-        // Each window renders its title bar independently
-        self.main_window.show(ctx, frame);
-        self.settings_window.show(ctx, frame);
-        self.about_window.show(ctx, frame);
-
-        // Each window can have different themes
-        if self.settings_window.is_open() {
-            self.settings_window.set_theme_mode(ThemeMode::Dark);
-        }
-    }
-}
+```bash
+cargo run --example multi_window
 ```
 
-**Benefits of independent TitleBar instances:**
+Highlights of the example:
 
-- **Isolated state**: Each window maintains its own menu state, keyboard navigation, and theme
-- **Custom behavior**: Different windows can have different control buttons and behaviors
-- **Independent themes**: Each window can use a different theme or color scheme
-- **Separate menus**: Each window can have completely different menu structures
-- **Memory efficient**: Only active windows consume resources
+- Independent `TitleBar` objects per window (main, Settings, About) with different button sets.
+- Windows are created via `ctx.show_viewport_deferred(...)` so they are actual OS-level windows, not embedded panels.
+- Shared application state is stored in `Arc<Mutex<...>>`, ensuring every window sees the same data.
+- Each new window is centered over the primary viewport by pairing `ViewportBuilder::with_position` with `ctx.input(|i| i.viewport().inner_rect)`.
+- Buttons inside the child windows demonstrate closing logic by sending `ViewportCommand::Close` back to eframe.
+
+Use this example as a starting point when you need multiple windows that stay visually consistent with egui-desktop’s desktop chrome.
 
 ### Custom Title Bar Icons
 
