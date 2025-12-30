@@ -117,7 +117,7 @@ pub fn apply_rounded_corners_to_viewport(ctx: &Context) {
 
         match apply_native_rounded_corners(native_ptr) {
             Ok(_) => {
-                println!("🎉 Native rounded corners applied successfully to viewport!");
+                // println!("🎉 Native rounded corners applied successfully to viewport!");
                 handle_found = true;
             }
             Err(e) => {
@@ -200,27 +200,33 @@ fn get_viewport_window_handle(ctx: &Context) -> Option<*mut c_void> {
 
     #[cfg(target_os = "macos")]
     {
-        use cocoa::appkit::NSWindow;
-        use cocoa::base::{id, nil};
-        use objc::{msg_send, sel, sel_impl};
-        use std::ffi::CString;
-
         unsafe {
             // Get all windows and find the one with matching title
-            let windows: id = msg_send![cocoa::appkit::NSApp(), windows];
+            use objc2::{MainThreadMarker, msg_send, runtime::AnyObject};
+            use objc2_app_kit::NSApp;
+
+            let app = NSApp(MainThreadMarker::new().unwrap());
+            let windows: *mut AnyObject = msg_send![<_ as AsRef<AnyObject>>::as_ref(&app), windows];
             let count: usize = msg_send![windows, count];
 
             for i in 0..count {
-                let window: id = msg_send![windows, objectAtIndex: i];
-                let title: id = msg_send![window, title];
+                use objc2::ffi::nil;
+
+                let window: *mut AnyObject = msg_send![windows, objectAtIndex: i];
+                let title: *mut AnyObject = msg_send![window, title];
 
                 if title != nil {
-                    let title_str = cocoa::foundation::NSString::from_utf8_lossy(
-                        cocoa::foundation::NSString::UTF8String(title),
-                    );
+                    let title_str: String = {
+                        let c_str: *const std::os::raw::c_char = msg_send![title, UTF8String];
+                        if c_str.is_null() {
+                            continue;
+                        }
+                        let c_str = std::ffi::CStr::from_ptr(c_str);
+                        c_str.to_string_lossy().into_owned()
+                    };
                     if title_str == viewport_title {
                         // Get the content view
-                        let content_view: id = msg_send![window, contentView];
+                        let content_view: *mut AnyObject = msg_send![window, contentView];
                         if content_view != nil {
                             return Some(content_view as *mut c_void);
                         }

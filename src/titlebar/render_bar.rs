@@ -3,7 +3,21 @@ use egui::{
     Rect, Sense, TextStyle, TopBottomPanel, Vec2, ViewportCommand,
 };
 
-use crate::{titlebar::control_buttons::WindowControlIcon, TitleBar};
+use crate::{TitleBar, titlebar::control_buttons::WindowControlIcon};
+
+/// Get the title bar height based on the platform.
+/// - macOS: 28.0 pixels (thinner title bar)
+/// - Windows/Linux: 32.0 pixels (standard title bar)
+pub fn title_bar_height() -> f32 {
+    #[cfg(target_os = "macos")]
+    {
+        28.0
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        32.0
+    }
+}
 
 impl TitleBar {
     /// Display the title bar in the egui context
@@ -41,8 +55,8 @@ impl TitleBar {
 
     /// Render a macOS-style title bar with traffic light controls.
     pub fn render_macos_title_bar(&mut self, ctx: &Context) {
-        let screen_rect = ctx.screen_rect();
-        if screen_rect.width() < 100.0 || screen_rect.height() < 100.0 {
+        let content_rect = ctx.content_rect();
+        if content_rect.width() < 100.0 || content_rect.height() < 100.0 {
             return;
         }
 
@@ -120,7 +134,7 @@ impl TitleBar {
                 if let Some(ref title_text) = self.title {
                     if self.should_show_title() {
                         let font = TextStyle::Body.resolve(ui.style());
-                        let galley = ui.fonts(|f| {
+                        let galley = ui.fonts_mut(|f| {
                             f.layout_no_wrap(title_text.clone(), font, self.title_color)
                         });
 
@@ -142,8 +156,8 @@ impl TitleBar {
 
     /// Render a platform-generic title bar (Windows/Linux-style).
     pub fn render_generic_title_bar(&mut self, ctx: &Context) {
-        let screen_rect = ctx.screen_rect();
-        if screen_rect.width() < 100.0 || screen_rect.height() < 100.0 {
+        let content_rect = ctx.content_rect();
+        if content_rect.width() < 100.0 || content_rect.height() < 100.0 {
             return;
         }
 
@@ -196,7 +210,7 @@ impl TitleBar {
 
                         if let Some(ref title) = self.title {
                             if self.should_show_title() {
-                                let title_width = ui.fonts(|f| {
+                                let title_width = ui.fonts_mut(|f| {
                                     f.layout_no_wrap(
                                         title.clone(),
                                         FontId::proportional(self.title_font_size),

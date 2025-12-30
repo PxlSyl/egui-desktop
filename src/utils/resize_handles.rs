@@ -5,10 +5,10 @@ use egui::{
 
 /// Render invisible viewport resize handles around the window.
 pub fn render_resize_handles(ctx: &Context) {
-    let screen_rect = ctx.screen_rect();
+    let content_rect = ctx.content_rect();
     let resize_handle_size = 8.0;
 
-    if screen_rect.width() < 100.0 || screen_rect.height() < 100.0 {
+    if content_rect.width() < 100.0 || content_rect.height() < 100.0 {
         return;
     }
 
@@ -16,8 +16,8 @@ pub fn render_resize_handles(ctx: &Context) {
         ctx,
         "resize_top",
         "resize_top_handle",
-        Pos2::new(screen_rect.min.x, screen_rect.min.y),
-        Vec2::new(screen_rect.width(), resize_handle_size),
+        Pos2::new(content_rect.min.x, content_rect.min.y),
+        Vec2::new(content_rect.width(), resize_handle_size),
         CursorIcon::ResizeVertical,
         ResizeDirection::North,
     );
@@ -26,8 +26,8 @@ pub fn render_resize_handles(ctx: &Context) {
         ctx,
         "resize_bottom",
         "resize_bottom_handle",
-        Pos2::new(screen_rect.min.x, screen_rect.max.y - resize_handle_size),
-        Vec2::new(screen_rect.width(), resize_handle_size),
+        Pos2::new(content_rect.min.x, content_rect.max.y - resize_handle_size),
+        Vec2::new(content_rect.width(), resize_handle_size),
         CursorIcon::ResizeVertical,
         ResizeDirection::South,
     );
@@ -36,8 +36,8 @@ pub fn render_resize_handles(ctx: &Context) {
         ctx,
         "resize_left",
         "resize_left_handle",
-        Pos2::new(screen_rect.min.x, screen_rect.min.y),
-        Vec2::new(resize_handle_size, screen_rect.height()),
+        Pos2::new(content_rect.min.x, content_rect.min.y),
+        Vec2::new(resize_handle_size, content_rect.height()),
         CursorIcon::ResizeHorizontal,
         ResizeDirection::West,
     );
@@ -46,20 +46,20 @@ pub fn render_resize_handles(ctx: &Context) {
         ctx,
         "resize_right",
         "resize_right_handle",
-        Pos2::new(screen_rect.max.x - resize_handle_size, screen_rect.min.y),
-        Vec2::new(resize_handle_size, screen_rect.height()),
+        Pos2::new(content_rect.max.x - resize_handle_size, content_rect.min.y),
+        Vec2::new(resize_handle_size, content_rect.height()),
         CursorIcon::ResizeHorizontal,
         ResizeDirection::East,
     );
 
     let corner_size = resize_handle_size * 1.5;
 
-    if screen_rect.width() > corner_size * 2.0 && screen_rect.height() > corner_size * 2.0 {
+    if content_rect.width() > corner_size * 2.0 && content_rect.height() > corner_size * 2.0 {
         create_resize_handle(
             ctx,
             "resize_top_left",
             "resize_top_left_handle",
-            Pos2::new(screen_rect.min.x, screen_rect.min.y),
+            Pos2::new(content_rect.min.x, content_rect.min.y),
             Vec2::new(corner_size, corner_size),
             CursorIcon::ResizeNwSe,
             ResizeDirection::NorthWest,
@@ -69,7 +69,7 @@ pub fn render_resize_handles(ctx: &Context) {
             ctx,
             "resize_top_right",
             "resize_top_right_handle",
-            Pos2::new(screen_rect.max.x - corner_size, screen_rect.min.y),
+            Pos2::new(content_rect.max.x - corner_size, content_rect.min.y),
             Vec2::new(corner_size, corner_size),
             CursorIcon::ResizeNeSw,
             ResizeDirection::NorthEast,
@@ -79,7 +79,7 @@ pub fn render_resize_handles(ctx: &Context) {
             ctx,
             "resize_bottom_left",
             "resize_bottom_left_handle",
-            Pos2::new(screen_rect.min.x, screen_rect.max.y - corner_size),
+            Pos2::new(content_rect.min.x, content_rect.max.y - corner_size),
             Vec2::new(corner_size, corner_size),
             CursorIcon::ResizeNeSw,
             ResizeDirection::SouthWest,
@@ -90,8 +90,8 @@ pub fn render_resize_handles(ctx: &Context) {
             "resize_bottom_right",
             "resize_bottom_right_handle",
             Pos2::new(
-                screen_rect.max.x - corner_size,
-                screen_rect.max.y - corner_size,
+                content_rect.max.x - corner_size,
+                content_rect.max.y - corner_size,
             ),
             Vec2::new(corner_size, corner_size),
             CursorIcon::ResizeNwSe,

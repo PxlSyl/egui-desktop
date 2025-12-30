@@ -7,6 +7,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::TitleBar;
 use crate::menu::items::MenuItem;
+use crate::titlebar::render_bar::title_bar_height;
 
 // Global state for submenu management
 static SUBMENU_CLICK_COUNTER: AtomicUsize = AtomicUsize::new(0);
@@ -118,7 +119,7 @@ impl TitleBar {
                 let click_pos = ctx.input(|i| i.pointer.interact_pos()).unwrap_or_default();
                 let menu_bar_rect = Rect::from_min_size(
                     Pos2::new(0.0, 0.0),
-                    Vec2::new(ctx.screen_rect().width(), 32.0),
+                    Vec2::new(ctx.content_rect().width(), title_bar_height()),
                 );
 
                 // If click is outside menu bar and any submenu is open, close all menus
@@ -439,7 +440,7 @@ impl TitleBar {
         // Calculate total width needed for all menus
         let mut total_width = 0.0;
         for (label, _) in &self.menu_items {
-            let label_width = ui.fonts(|f| {
+            let label_width = ui.fonts_mut(|f| {
                 f.layout_no_wrap(
                     label.clone(),
                     FontId::proportional(self.menu_text_size),
@@ -451,7 +452,7 @@ impl TitleBar {
             total_width += label_width;
         }
         for menu_item in &self.menu_items_with_submenus {
-            let label_width = ui.fonts(|f| {
+            let label_width = ui.fonts_mut(|f| {
                 f.layout_no_wrap(
                     menu_item.label.clone(),
                     FontId::proportional(self.menu_text_size),
@@ -474,7 +475,7 @@ impl TitleBar {
 
         // Render simple menu items
         for (index, (label, callback)) in self.menu_items.iter().enumerate() {
-            let label_width = ui.fonts(|f| {
+            let label_width = ui.fonts_mut(|f| {
                 f.layout_no_wrap(
                     label.clone(),
                     FontId::proportional(self.menu_text_size),
@@ -545,7 +546,7 @@ impl TitleBar {
 
         // Render menu items with submenus
         for (index, menu_item) in self.menu_items_with_submenus.iter().enumerate() {
-            let label_width = ui.fonts(|f| {
+            let label_width = ui.fonts_mut(|f| {
                 f.layout_no_wrap(
                     menu_item.label.clone(),
                     FontId::proportional(self.menu_text_size),
@@ -711,7 +712,7 @@ impl TitleBar {
                         }
                         menu_x
                     };
-                    let submenu_position = Pos2::new(submenu_x, 32.0); // Below title bar
+                    let submenu_position = Pos2::new(submenu_x, title_bar_height()); // Below title bar
 
                     // Use a RefCell to allow modification from within the closure
                     let item_clicked = RefCell::new(false);
@@ -762,7 +763,7 @@ impl TitleBar {
                             // Close if click is outside submenu and not in menu bar
                             let menu_bar_rect = Rect::from_min_size(
                                 Pos2::new(0.0, 0.0),
-                                Vec2::new(ctx.screen_rect().width(), 32.0),
+                                Vec2::new(ctx.content_rect().width(), title_bar_height()),
                             );
 
                             if !submenu_rect.contains(click_pos)
@@ -813,7 +814,7 @@ impl TitleBar {
         // Find the maximum width needed
         let mut max_width: f32 = 120.0; // Minimum width
         for subitem in &menu_item.subitems {
-            let label_width = ui.fonts(|f| {
+            let label_width = ui.fonts_mut(|f| {
                 f.layout_no_wrap(
                     subitem.label.clone(),
                     FontId::proportional(menu_text_size),
@@ -823,7 +824,7 @@ impl TitleBar {
                 .x
             });
             let shortcut_width = if let Some(ref shortcut) = subitem.shortcut {
-                ui.fonts(|f| {
+                ui.fonts_mut(|f| {
                     f.layout_no_wrap(
                         shortcut.display_string(),
                         FontId::proportional(menu_text_size * 0.9),
@@ -851,11 +852,11 @@ impl TitleBar {
         let submenu_rect = egui::Rect::from_min_size(position, Vec2::new(max_width, total_height));
 
         // Ensure submenu stays within screen bounds
-        let screen_rect = ui.ctx().screen_rect();
-        let adjusted_rect = if submenu_rect.max.x > screen_rect.max.x {
+        let content_rect = ui.ctx().content_rect();
+        let adjusted_rect = if submenu_rect.max.x > content_rect.max.x {
             // Move left if it would go off screen
             Rect::from_min_size(
-                Pos2::new(screen_rect.max.x - max_width, submenu_rect.min.y),
+                Pos2::new(content_rect.max.x - max_width, submenu_rect.min.y),
                 submenu_rect.size(),
             )
         } else {
@@ -981,7 +982,7 @@ impl TitleBar {
                     let item_height = 24.0;
                     let separator_height = 1.0;
                     for c in &subitem.children {
-                        let label_width = ui.fonts(|f| {
+                        let label_width = ui.fonts_mut(|f| {
                             f.layout_no_wrap(
                                 c.label.clone(),
                                 FontId::proportional(menu_text_size),
@@ -991,7 +992,7 @@ impl TitleBar {
                             .x
                         });
                         let shortcut_width = if let Some(ref s) = c.shortcut {
-                            ui.fonts(|f| {
+                            ui.fonts_mut(|f| {
                                 f.layout_no_wrap(
                                     s.display_string(),
                                     FontId::proportional(menu_text_size * 0.9),
@@ -1019,9 +1020,9 @@ impl TitleBar {
                         Vec2::new(child_max_width, child_total_height),
                     );
                     // Keep child rect on screen if needed
-                    let screen_rect = ui.ctx().screen_rect();
-                    if child_rect.max.x > screen_rect.max.x {
-                        let shift = child_rect.max.x - screen_rect.max.x;
+                    let content_rect = ui.ctx().content_rect();
+                    if child_rect.max.x > content_rect.max.x {
+                        let shift = child_rect.max.x - content_rect.max.x;
                         child_rect = child_rect.translate(Vec2::new(-shift, 0.0));
                     }
 

@@ -45,7 +45,7 @@ impl MenuBar {
         let item_height = 28.0; // Match title bar height
 
         for item in &self.items {
-            let item_width = ui.fonts(|f| {
+            let item_width = ui.fonts_mut(|f| {
                 f.layout_no_wrap(
                     item.label.clone(),
                     FontId::proportional(14.0), // Standard menu font size

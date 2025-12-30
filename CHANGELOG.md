@@ -5,7 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2024-12-XX
+## [0.2.1] - 2025-12-XX
+
+### Changed
+
+- **Migration to objc2**: Updated macOS dependencies from `objc`/`cocoa` to `objc2`/`objc2-app-kit`/`objc2-foundation` for better maintainability and type safety
+- Improved macOS rounded corners implementation with better background transparency handling
+- **CLI version**: Updated `egui-desktop-cli` to version 0.2.1 to match the main crate
+
+### Fixed
+
+- Fixed submenu positioning offset on macOS (submenus now correctly align below the thinner 28px title bar)
+- Fixed gray background appearing in rounded corners on macOS windows
+
+## [0.2.0] - 2025-09-XX
 
 ### Added
 
@@ -30,5 +43,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial alpha release with basic title bar, menu system, and theming support.
 
+[0.2.1]: https://github.com/PxlSyl/egui-desktop/releases/tag/v0.2.1
 [0.2.0]: https://github.com/PxlSyl/egui-desktop/releases/tag/v0.2.0
 [0.1.9]: https://github.com/PxlSyl/egui-desktop/releases/tag/v0.1.9
