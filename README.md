@@ -1,6 +1,6 @@
 # egui-desktop
 
-A comprehensive desktop UI framework for egui applications with native window decorations, advanced theming, and cross-platform desktop integration.
+A comprehensive desktop UI framework for egui applications with native-like window decorations, advanced theming, and cross-platform desktop integration.
 
 ## 📸 Screenshots
 
