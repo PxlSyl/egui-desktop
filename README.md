@@ -22,6 +22,12 @@ A comprehensive desktop UI framework for egui applications with native-like wind
   <img src="screenshots/mac4.png" alt="egui-desktop macOS example 4" width="45%">
 </div>
 
+## Projects using this crate
+
+If you want your project to be added there, just ask!
+
+- [Logline](https://github.com/zibo-chen/logline) : High-Performance Log Viewer with AI-Powered Analysis via MCP.
+
 ## ⚠️ Disclaimer
 
 **This project is currently in alpha version and under active development.** It may not be fully tested on all platforms. While we strive for cross-platform compatibility, some features may behave differently or have limitations on certain operating systems. Please test thoroughly in your target environments before using in production applications.
