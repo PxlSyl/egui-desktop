@@ -127,6 +127,7 @@ impl TitleBar {
                         let window_active =
                             ui.ctx().input(|i| i.viewport().focused.unwrap_or(true));
                         let colored = controls_hovered || window_active;
+                        let show_icons = controls_hovered;
 
                         // Figure out which color will be inactive depending on luminance of titlebar
                         let rgba: Rgba = self.background_color.into();
@@ -142,17 +143,11 @@ impl TitleBar {
                         } else {
                             inactive_color
                         };
-                        let close_stroke_color = if colored {
-                            Color32::from_rgb(255, 64, 55)
-                        } else {
-                            inactive_color
-                        };
                         let close_icon_color = Color32::from_rgb(115, 0, 0);
                         let close_response = self.render_traffic_light(
                             ui,
-                            WindowControlIcon::Close,
                             close_background_color,
-                            close_stroke_color,
+                            show_icons.then(|| WindowControlIcon::Close),
                             close_icon_color,
                             button_size,
                         );
@@ -168,18 +163,12 @@ impl TitleBar {
                         } else {
                             inactive_color
                         };
-                        let miniaturize_stroke_color = if colored {
-                            Color32::from_rgb(224, 165, 59)
-                        } else {
-                            inactive_color
-                        };
                         let miniaturize_icon_color = Color32::from_rgb(152, 85, 1);
 
                         let miniaturize_response = self.render_traffic_light(
                             ui,
-                            WindowControlIcon::Close,
                             miniaturize_background_color,
-                            miniaturize_stroke_color,
+                            show_icons.then(|| WindowControlIcon::Minimize),
                             miniaturize_icon_color,
                             button_size,
                         );
@@ -195,11 +184,6 @@ impl TitleBar {
                         } else {
                             inactive_color
                         };
-                        let zoom_stroke_color = if colored {
-                            Color32::from_rgb(25, 169, 35)
-                        } else {
-                            inactive_color
-                        };
                         let zoom_icon_color = Color32::from_rgb(0, 97, 0);
 
                         let option_down = ui.ctx().input(|i| i.modifiers.alt);
@@ -209,9 +193,8 @@ impl TitleBar {
                                 ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
                             let zoom_response = self.render_traffic_light(
                                 ui,
-                                WindowControlIcon::Close,
                                 zoom_background_color,
-                                zoom_stroke_color,
+                                show_icons.then(|| WindowControlIcon::Restore),
                                 zoom_icon_color,
                                 button_size,
                             );
@@ -225,9 +208,8 @@ impl TitleBar {
                                 ui.ctx().input(|i| i.viewport().fullscreen.unwrap_or(false));
                             let zoom_response = self.render_traffic_light(
                                 ui,
-                                WindowControlIcon::Close,
                                 zoom_background_color,
-                                zoom_stroke_color,
+                                show_icons.then(|| WindowControlIcon::Maximize),
                                 zoom_icon_color,
                                 button_size,
                             );
