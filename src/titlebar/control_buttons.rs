@@ -1,5 +1,5 @@
 use egui::{
-    Color32, CursorIcon, Painter, Pos2, Rect, Response, Sense, Stroke, StrokeKind, Ui, Vec2, vec2,
+    Color32, Painter, Pos2, Rect, Response, Sense, Shape, Stroke, StrokeKind, Ui, Vec2, vec2,
 };
 
 use crate::{TitleBar, titlebar::render_bar::title_bar_height};
@@ -231,7 +231,6 @@ impl TitleBar {
         let size = rect.width().min(rect.height());
         let center = rect.center();
         let half_size = size / 2.0;
-
         let stroke = Stroke::new(1.5, color);
         painter.line_segment(
             [
@@ -260,7 +259,7 @@ impl TitleBar {
     /// * `color` - The color of the icon strokes
     fn draw_mac_zoom_icon(&self, painter: &Painter, rect: Rect, color: Color32) {
         // Left top triangle
-        painter.add(egui::Shape::convex_polygon(
+        painter.add(Shape::convex_polygon(
             vec![
                 rect.left_top(),
                 rect.left_top() + vec2(rect.width() * 0.75, 0.0),
@@ -270,7 +269,7 @@ impl TitleBar {
             Stroke::NONE,
         ));
         // Right bottom triangle
-        painter.add(egui::Shape::convex_polygon(
+        painter.add(Shape::convex_polygon(
             vec![
                 rect.right_bottom(),
                 rect.right_bottom() - vec2(rect.width() * 0.75, 0.0),
@@ -337,9 +336,9 @@ impl TitleBar {
         if let Some(icon) = icon_type {
             let icon_color = if darken {
                 Color32::from_rgba_premultiplied(
-                    (icon_color.r() as f32 * 0.75) as u8,
-                    (icon_color.g() as f32 * 0.75) as u8,
-                    (icon_color.b() as f32 * 0.75) as u8,
+                    (icon_color.r() as f32 * 0.45) as u8,
+                    (icon_color.g() as f32 * 0.45) as u8,
+                    (icon_color.b() as f32 * 0.45) as u8,
                     icon_color.a(),
                 )
             } else {

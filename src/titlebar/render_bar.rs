@@ -129,7 +129,7 @@ impl TitleBar {
                         let colored = controls_hovered || window_active;
                         let show_icons = controls_hovered;
 
-                        // Figure out which color will be inactive depending on luminance of titlebar
+                        // Figure out inactive color depending on luminance of titlebar
                         let rgba: Rgba = self.background_color.into();
                         let luminance = 0.2126 * rgba.r() + 0.7152 * rgba.g() + 0.0722 * rgba.b();
                         let inactive_color = if luminance < 0.55 {
