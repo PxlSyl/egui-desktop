@@ -144,10 +144,6 @@ impl TitleBar {
         let centered_rect = Rect::from_center_size(centered_pos, button_size);
         let response = ui.interact(centered_rect, button_id, Sense::click());
 
-        if response.hovered() {
-            ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
-        }
-
         response
     }
 
