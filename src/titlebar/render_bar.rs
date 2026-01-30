@@ -89,7 +89,13 @@ impl TitleBar {
 
                 ui.horizontal(|ui| {
                     ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
-                        ui.add_space(8.0);
+                        // Save spacing to restore after rendering is done.
+                        // We'll use custom spacing so reset current one to be 0
+                        let prev_spacing = ui.spacing().item_spacing;
+                        ui.spacing_mut().item_spacing = Vec2::ZERO;
+                        let space = 8.0;
+
+                        ui.add_space(space);
 
                         let close_response =
                             self.render_traffic_light(ui, Color32::from_rgb(255, 95, 87), 12.0);
@@ -98,7 +104,7 @@ impl TitleBar {
                             ctx.send_viewport_cmd(ViewportCommand::Close);
                         }
 
-                        ui.add_space(6.0);
+                        ui.add_space(space);
 
                         let minimize_response =
                             self.render_traffic_light(ui, Color32::from_rgb(255, 189, 46), 12.0);
@@ -107,7 +113,7 @@ impl TitleBar {
                             ctx.send_viewport_cmd(ViewportCommand::Minimized(true));
                         }
 
-                        ui.add_space(6.0);
+                        ui.add_space(space);
 
                         let is_maximized = ctx.input(|i| i.viewport().maximized.unwrap_or(false));
                         let maximize_response =
@@ -117,7 +123,12 @@ impl TitleBar {
                             ctx.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
                         }
 
-                        ui.add_space(16.0);
+                        // Add a bit more space after traffic light controls
+                        ui.add_space(space);
+                        ui.add_space(space);
+
+                        // Restore previous spacing configuration
+                        ui.spacing_mut().item_spacing = prev_spacing;
 
                         self.render_menu_items(ui, ctx);
                     });
