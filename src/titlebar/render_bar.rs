@@ -91,9 +91,8 @@ impl TitleBar {
                     ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
                         ui.add_space(8.0);
 
-                        let close_response = self
-                            .render_traffic_light(ui, Color32::from_rgb(255, 95, 87), 12.0)
-                            .on_hover_text("Close");
+                        let close_response =
+                            self.render_traffic_light(ui, Color32::from_rgb(255, 95, 87), 12.0);
 
                         if close_response.clicked() {
                             ctx.send_viewport_cmd(ViewportCommand::Close);
@@ -101,9 +100,8 @@ impl TitleBar {
 
                         ui.add_space(6.0);
 
-                        let minimize_response = self
-                            .render_traffic_light(ui, Color32::from_rgb(255, 189, 46), 12.0)
-                            .on_hover_text("Minimize");
+                        let minimize_response =
+                            self.render_traffic_light(ui, Color32::from_rgb(255, 189, 46), 12.0);
 
                         if minimize_response.clicked() {
                             ctx.send_viewport_cmd(ViewportCommand::Minimized(true));
@@ -112,9 +110,8 @@ impl TitleBar {
                         ui.add_space(6.0);
 
                         let is_maximized = ctx.input(|i| i.viewport().maximized.unwrap_or(false));
-                        let maximize_response = self
-                            .render_traffic_light(ui, Color32::from_rgb(40, 201, 55), 12.0)
-                            .on_hover_text(if is_maximized { "Restore" } else { "Maximize" });
+                        let maximize_response =
+                            self.render_traffic_light(ui, Color32::from_rgb(40, 201, 55), 12.0);
 
                         if maximize_response.clicked() {
                             ctx.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
