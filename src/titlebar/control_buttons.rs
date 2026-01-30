@@ -2,7 +2,7 @@ use egui::{
     Color32, CursorIcon, Painter, Pos2, Rect, Response, Sense, Stroke, StrokeKind, Ui, Vec2,
 };
 
-use crate::TitleBar;
+use crate::{TitleBar, titlebar::render_bar::title_bar_height};
 
 /// Window control icon types used by the title bar.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -126,27 +126,6 @@ impl TitleBar {
         );
     }
 
-    /// Render a macOS-style traffic light button.
-    pub fn render_traffic_light(&self, ui: &mut Ui, color: Color32, size: f32) -> egui::Response {
-        let button_size = Vec2::new(size, size);
-        let (button_id, button_rect) = ui.allocate_space(button_size);
-
-        let y_center = 14.0;
-        let centered_pos = Pos2::new(button_rect.center().x, y_center);
-
-        ui.painter().circle_filled(centered_pos, size / 2.0, color);
-        ui.painter().circle_stroke(
-            centered_pos,
-            size / 2.0,
-            Stroke::new(0.5, Color32::from_rgba_premultiplied(0, 0, 0, 30)),
-        );
-
-        let centered_rect = Rect::from_center_size(centered_pos, button_size);
-        let response = ui.interact(centered_rect, button_id, Sense::click());
-
-        response
-    }
-
     /// Render a window control button with a drawn icon
     ///
     /// This method creates an interactive button for window controls (close, maximize,
@@ -199,6 +178,63 @@ impl TitleBar {
                 self.draw_minimize_icon(ui.painter(), icon_rect, final_icon_color)
             }
         }
+
+        response
+    }
+
+    /// Render a MacOS-style traffic light button with a drawn icon
+    ///
+    /// This method creates an interactive button for window controls (close, zoom,
+    /// miniaturize) with custom drawn icons instead of SVG images.
+    ///
+    /// # Arguments
+    /// * `ui` - The egui UI context
+    /// * `icon_type` - The type of icon to draw
+    /// * `button_color` - The color of the button The background color when hovering
+    /// * `stroke_color` - The color of the button stroke
+    /// * `icon_color` - The color of the icon
+    /// * `size` - The size of the button
+    ///
+    /// # Returns
+    /// * `egui::Response` - The interaction response for the button
+    pub fn render_traffic_light(
+        &self,
+        ui: &mut Ui,
+        icon_type: WindowControlIcon,
+        button_color: Color32,
+        stroke_color: Color32,
+        icon_color: Color32,
+        size: f32,
+    ) -> egui::Response {
+        let button_size = Vec2::new(size, size);
+        let (button_id, button_rect) = ui.allocate_space(button_size);
+
+        let y_center = title_bar_height() / 2.0;
+        let centered_pos = Pos2::new(button_rect.center().x, y_center);
+        let centered_rect = Rect::from_center_size(centered_pos, button_size);
+        let response = ui.interact(centered_rect, button_id, Sense::click());
+        let primary_mouse_down = ui
+            .ctx()
+            .input(|i| i.pointer.button_down(egui::PointerButton::Primary));
+
+        let darken = response.hovered() && primary_mouse_down;
+        let bkg = if darken {
+            Color32::from_rgba_premultiplied(
+                (button_color.r() as f32 * 0.75) as u8,
+                (button_color.g() as f32 * 0.75) as u8,
+                (button_color.b() as f32 * 0.75) as u8,
+                button_color.a(),
+            )
+        } else {
+            button_color
+        };
+
+        ui.painter().circle_filled(centered_pos, size / 2.0, bkg);
+        ui.painter().circle_stroke(
+            centered_pos,
+            size / 2.0,
+            Stroke::new(0.5, Color32::from_rgba_premultiplied(0, 0, 0, 30)),
+        );
 
         response
     }

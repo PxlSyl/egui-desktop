@@ -1,6 +1,6 @@
 use egui::{
     Align, Align2, Color32, Context, FontId, Frame, Image, Layout, Margin, PointerButton, Pos2,
-    Rect, Sense, TextStyle, TopBottomPanel, Vec2, ViewportCommand,
+    Rect, Rgba, Sense, TextStyle, TopBottomPanel, Vec2, ViewportCommand,
 };
 
 use crate::{TitleBar, titlebar::control_buttons::WindowControlIcon};
@@ -89,43 +89,158 @@ impl TitleBar {
 
                 ui.horizontal(|ui| {
                     ui.with_layout(Layout::left_to_right(Align::Center), |ui| {
+                        let is_fullscreen =
+                            ui.ctx().input(|i| i.viewport().fullscreen.unwrap_or(false));
+                        if is_fullscreen {
+                            // No need to render traffic light controls in fullscreen mode
+                            // Just render menu items instead
+                            return self.render_menu_items(ui, ctx);
+                        }
+
                         // Save spacing to restore after rendering is done.
                         // We'll use custom spacing so reset current one to be 0
                         let prev_spacing = ui.spacing().item_spacing;
                         ui.spacing_mut().item_spacing = Vec2::ZERO;
-                        let space = 8.0;
 
-                        ui.add_space(space);
+                        let spacing_size = 8.0;
+                        ui.add_space(spacing_size);
 
-                        let close_response =
-                            self.render_traffic_light(ui, Color32::from_rgb(255, 95, 87), 12.0);
+                        // Figure out traffic lights zone geometry
+                        let controls_start = Pos2::new(ui.cursor().min.x, spacing_size);
+                        let buttons_count = 3.0;
+                        let button_size = 12.0;
+                        let spacings_count = 2.0;
+                        let buttons_width = buttons_count * button_size;
+                        let spacing_width = spacings_count * spacing_size;
+                        let controls_width = buttons_width + spacing_width;
+                        let controls_height = button_size;
+                        let rect = egui::Rect::from_min_size(
+                            controls_start,
+                            egui::vec2(controls_width, controls_height),
+                        );
+
+                        // Check if traffic lights controls are hovered.
+                        // In this case buttons should be 'active' even in case of not focused window
+                        let controls_hovered = ui
+                            .ctx()
+                            .input(|i| i.pointer.latest_pos().map_or(false, |p| rect.contains(p)));
+                        let window_active =
+                            ui.ctx().input(|i| i.viewport().focused.unwrap_or(true));
+                        let colored = controls_hovered || window_active;
+
+                        // Figure out which color will be inactive depending on luminance of titlebar
+                        let rgba: Rgba = self.background_color.into();
+                        let luminance = 0.2126 * rgba.r() + 0.7152 * rgba.g() + 0.0722 * rgba.b();
+                        let inactive_color = if luminance < 0.55 {
+                            Color32::from_rgb(120, 120, 120)
+                        } else {
+                            Color32::from_rgb(220, 220, 220)
+                        };
+
+                        let close_background_color = if colored {
+                            Color32::from_rgb(255, 95, 87)
+                        } else {
+                            inactive_color
+                        };
+                        let close_stroke_color = if colored {
+                            Color32::from_rgb(255, 64, 55)
+                        } else {
+                            inactive_color
+                        };
+                        let close_icon_color = Color32::from_rgb(115, 0, 0);
+                        let close_response = self.render_traffic_light(
+                            ui,
+                            WindowControlIcon::Close,
+                            close_background_color,
+                            close_stroke_color,
+                            close_icon_color,
+                            button_size,
+                        );
 
                         if close_response.clicked() {
                             ctx.send_viewport_cmd(ViewportCommand::Close);
                         }
 
-                        ui.add_space(space);
+                        ui.add_space(spacing_size);
 
-                        let minimize_response =
-                            self.render_traffic_light(ui, Color32::from_rgb(255, 189, 46), 12.0);
+                        let miniaturize_background_color = if colored {
+                            Color32::from_rgb(255, 189, 46)
+                        } else {
+                            inactive_color
+                        };
+                        let miniaturize_stroke_color = if colored {
+                            Color32::from_rgb(224, 165, 59)
+                        } else {
+                            inactive_color
+                        };
+                        let miniaturize_icon_color = Color32::from_rgb(152, 85, 1);
 
-                        if minimize_response.clicked() {
+                        let miniaturize_response = self.render_traffic_light(
+                            ui,
+                            WindowControlIcon::Close,
+                            miniaturize_background_color,
+                            miniaturize_stroke_color,
+                            miniaturize_icon_color,
+                            button_size,
+                        );
+
+                        if miniaturize_response.clicked() {
                             ctx.send_viewport_cmd(ViewportCommand::Minimized(true));
                         }
 
-                        ui.add_space(space);
+                        ui.add_space(spacing_size);
 
-                        let is_maximized = ctx.input(|i| i.viewport().maximized.unwrap_or(false));
-                        let maximize_response =
-                            self.render_traffic_light(ui, Color32::from_rgb(40, 201, 55), 12.0);
+                        let zoom_background_color = if colored {
+                            Color32::from_rgb(40, 201, 55)
+                        } else {
+                            inactive_color
+                        };
+                        let zoom_stroke_color = if colored {
+                            Color32::from_rgb(25, 169, 35)
+                        } else {
+                            inactive_color
+                        };
+                        let zoom_icon_color = Color32::from_rgb(0, 97, 0);
 
-                        if maximize_response.clicked() {
-                            ctx.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
+                        let option_down = ui.ctx().input(|i| i.modifiers.alt);
+
+                        if option_down {
+                            let is_maximized =
+                                ui.ctx().input(|i| i.viewport().maximized.unwrap_or(false));
+                            let zoom_response = self.render_traffic_light(
+                                ui,
+                                WindowControlIcon::Close,
+                                zoom_background_color,
+                                zoom_stroke_color,
+                                zoom_icon_color,
+                                button_size,
+                            );
+                            if zoom_response.clicked() {
+                                // Handle classic zoom (Option-click)
+                                ui.ctx()
+                                    .send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
+                            }
+                        } else {
+                            let is_fullscreen =
+                                ui.ctx().input(|i| i.viewport().fullscreen.unwrap_or(false));
+                            let zoom_response = self.render_traffic_light(
+                                ui,
+                                WindowControlIcon::Close,
+                                zoom_background_color,
+                                zoom_stroke_color,
+                                zoom_icon_color,
+                                button_size,
+                            );
+                            if zoom_response.clicked() {
+                                // Handle zoom (fullscreen case)
+                                ui.ctx()
+                                    .send_viewport_cmd(ViewportCommand::Fullscreen(!is_fullscreen));
+                            }
                         }
 
                         // Add a bit more space after traffic light controls
-                        ui.add_space(space);
-                        ui.add_space(space);
+                        ui.add_space(spacing_size);
+                        ui.add_space(spacing_size);
 
                         // Restore previous spacing configuration
                         ui.spacing_mut().item_spacing = prev_spacing;
