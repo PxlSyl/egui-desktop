@@ -142,17 +142,22 @@ impl eframe::App for MultiWindowApp {
         if *self.settings_open.lock().unwrap() {
             let settings_size = egui::vec2(500.0, 400.0);
             let viewport_id = egui::ViewportId::from_hash_of("settings_window");
-            let mut viewport_builder = egui::ViewportBuilder::default()
+
+            // Calculate initial position more reliably
+            let initial_pos = if let Some(inner_rect) = ctx.input(|i| i.viewport().inner_rect) {
+                inner_rect.center() - settings_size * 0.5
+            } else {
+                // Fallback to screen center if we can't get main window position
+                egui::pos2(100.0, 100.0)
+            };
+
+            let viewport_builder = egui::ViewportBuilder::default()
                 .with_title("Settings")
                 .with_inner_size(settings_size)
                 .with_min_inner_size(egui::vec2(400.0, 300.0))
                 .with_decorations(false)
-                .with_resizable(true);
-
-            if let Some(inner_rect) = ctx.input(|i| i.viewport().inner_rect) {
-                let centered_pos = inner_rect.center() - settings_size * 0.5;
-                viewport_builder = viewport_builder.with_position(centered_pos);
-            }
+                .with_resizable(true)
+                .with_position(initial_pos);
 
             let app_state = self.app_state.clone();
             let settings_title_bar = self.settings_title_bar.clone();
@@ -218,17 +223,22 @@ impl eframe::App for MultiWindowApp {
         if *self.about_open.lock().unwrap() {
             let about_size = egui::vec2(400.0, 300.0);
             let viewport_id = egui::ViewportId::from_hash_of("about_window");
-            let mut viewport_builder = egui::ViewportBuilder::default()
+
+            // Calculate initial position more reliably
+            let initial_pos = if let Some(inner_rect) = ctx.input(|i| i.viewport().inner_rect) {
+                inner_rect.center() - about_size * 0.5
+            } else {
+                // Fallback to screen center if we can't get main window position
+                egui::pos2(150.0, 150.0)
+            };
+
+            let viewport_builder = egui::ViewportBuilder::default()
                 .with_title("About")
                 .with_inner_size(about_size)
                 .with_min_inner_size(egui::vec2(350.0, 250.0))
                 .with_decorations(false)
-                .with_resizable(true);
-
-            if let Some(inner_rect) = ctx.input(|i| i.viewport().inner_rect) {
-                let centered_pos = inner_rect.center() - about_size * 0.5;
-                viewport_builder = viewport_builder.with_position(centered_pos);
-            }
+                .with_resizable(true)
+                .with_position(initial_pos);
 
             let app_state = self.app_state.clone();
             let about_title_bar = self.about_title_bar.clone();
@@ -270,7 +280,7 @@ impl eframe::App for MultiWindowApp {
                     ui.separator();
 
                     ui.label("Built with:");
-                    ui.label("• egui-desktop-ui");
+                    ui.label("• egui-desktop");
                     ui.label("• eframe");
                     ui.label("• egui");
 

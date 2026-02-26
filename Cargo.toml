@@ -1,8 +1,8 @@
 [package]
 name = "egui-desktop"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2024"
-description = "Cross-platform desktop UI components for egui applications"
+description = "Cross-platform GUI for egui applications"
 license = "MIT"
 repository = "https://github.com/PxlSyl/egui-desktop"
 readme = "README.md"
@@ -25,12 +25,12 @@ rustdoc-args = [
 ]
 
 [dependencies]
-egui = "0.33.2"
-eframe = "0.33.2"
+egui = "0.33.3"
+eframe = "0.33.3"
 
-egui_extras = { version = "0.33.2", features = ["all_loaders"] }
+egui_extras = { version = "0.33.3", features = ["all_loaders"] }
 raw-window-handle = "0.6"
-lazy_static = "1.4"
+lazy_static = "1.5.0"
 
 
 # Platform-specific dependencies for native rounded corners

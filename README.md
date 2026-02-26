@@ -43,7 +43,7 @@ We welcome feedback, bug reports, and contributions to help improve platform com
 
 ## 🎯 Goal
 
-As a developer who uses this framework to build my own desktop applications, I'm passionate about rust and egui and want to make desktop development easier for Rust programmers. This framework addresses the common pain points when building native-feeling desktop apps with egui and custom title bars:
+As a developer who uses this framework to build my own desktop applications, I'm passionate about rust and egui and want to make desktop development easier for Rust programmers. This framework addresses common pain points when building native-feeling desktop apps with egui and custom title bars:
 
 - **Native integration**: Seamless window decorations and platform-specific behaviors
 - **Developer experience**: Simple APIs that handle complex cross-platform differences
@@ -59,13 +59,13 @@ The goal is to provide a solid foundation so you can focus on building your appl
 
 - **macOS**: Custom title bar with authentic traffic light buttons (close, minimize, maximize)
 - **Windows/Linux**: Generic title bar with standard window controls
-  - _Note: Linux currently uses the same title bar style as Windows. Contributions are welcome to add Linux-specific styling!_
-- **Auto-detection**: Automatically selects the appropriate title bar for your OS
+  - _Note: Linux currently uses same title bar style as Windows. Contributions are welcome to add Linux-specific styling!_
+- **Auto-detection**: Automatically selects appropriate title bar for your OS
 - **Custom app icons**: Support for SVG, PNG, JPEG and other image formats
 - **Custom title bar icons**: Add your own icons with automatic platform positioning
 - **Icon keyboard shortcuts**: Bind keyboard shortcuts to custom icons with tooltip display
-- **Optional titles**: Hide title text while keeping the icon and controls
-- **Menu integration**: Add menu items or icons directly in the title bar
+- **Optional titles**: Hide title text while keeping icon and controls
+- **Menu integration**: Add menu items or icons directly in title bar
 - **Advanced menu system**: Multi-level menus with submenus and cascading sidemenus
 - **Keyboard navigation**: Full keyboard support following platform standards
 - **Cross-platform shortcuts**: Comprehensive keyboard shortcut system with global state management
@@ -103,7 +103,7 @@ The easiest way to get started is using our CLI tool that generates a complete s
 #### Installation
 
 ```bash
-# Install the CLI globally from crates.io
+# Install CLI globally from crates.io
 cargo install egui-desktop-cli
 
 # Or install from local development:
@@ -205,15 +205,10 @@ TitleBar::new("My App")
         hover_color: Color32::from_rgb(65, 65, 85),
         close_hover_color: Color32::from_rgb(220, 20, 40),
         close_icon_color: Color32::from_rgb(180, 180, 180),
-        title_color: Color32::from_rgb(200, 200, 255),
+        
     })
     .show(ctx);
 ```
-
-### Custom Icons
-
-Add custom icons to the title bar with optional keyboard shortcuts:
-
 ```rust
 use egui_desktop::{TitleBar, CustomIcon, KeyboardShortcut};
 
@@ -255,6 +250,7 @@ impl eframe::App for MyApp {
 
 - **Image Icons**: Use `CustomIcon::Image()` with SVG, PNG, JPEG, etc.
 - **Drawn Icons**: Use `CustomIcon::Drawn()` with custom drawing functions
+- **Animated Icons**: Use `CustomIcon::Animated()` with frame-based animations
 
 #### Keyboard Shortcuts
 
@@ -264,52 +260,14 @@ Icons can have keyboard shortcuts that trigger their callbacks:
 - Use `KeyboardShortcut::parse()` for simple string-based shortcuts
 - Call `handle_icon_shortcuts(ctx)` in your app's update loop
 
-### Multi-Window Applications
+#### Platform-specific positioning
 
-See `examples/multi_window.rs` for a complete `egui` 0.32 / `eframe` sample that opens additional native windows (viewports) with their own `TitleBar` instances:
+- **Windows/Linux**: Icons appear to left of window control buttons
+- **macOS**: Icons appear to right of traffic light buttons
 
-```bash
-cargo run --example multi_window
-```
+#### Animated Icons
 
-Highlights of the example:
-
-- Independent `TitleBar` objects per window (main, Settings, About) with different button sets.
-- Windows are created via `ctx.show_viewport_deferred(...)` so they are actual OS-level windows, not embedded panels.
-- Shared application state is stored in `Arc<Mutex<...>>`, ensuring every window sees the same data.
-- Each new window is centered over the primary viewport by pairing `ViewportBuilder::with_position` with `ctx.input(|i| i.viewport().inner_rect)`.
-- Buttons inside the child windows demonstrate closing logic by sending `ViewportCommand::Close` back to eframe.
-
-Use this example as a starting point when you need multiple windows that stay visually consistent with egui-desktop’s desktop chrome.
-
-### Custom Title Bar Icons
-
-```rust
-use egui_desktop::{CustomIcon, ImageSource};
-
-// Add custom icons to the title bar (automatically positioned by platform)
-TitleBar::new("My App")
-    // Image-based icon (SVG, PNG, JPEG, etc.)
-    .add_icon(
-        CustomIcon::Image(ImageSource::from_bytes("settings.svg", include_bytes!("settings.svg"))),
-        Some(Box::new(|| println!("Settings clicked!")))
-    )
-    // Custom drawn icon
-    .add_icon(
-        CustomIcon::Drawn(Box::new(|painter, rect, color| {
-            // Draw a custom notification bell
-            let center = rect.center();
-            let radius = rect.width().min(rect.height()) * 0.4;
-            painter.circle_stroke(center, radius, egui::Stroke::new(2.0, color));
-        })),
-        Some(Box::new(|| println!("Notifications!")))
-    )
-    .show(ctx);
-```
-
-### Animated Title Bar Icons
-
-You can add animated icons that the framework will drive every frame with timing, hover/press state, and theme colors.
+You can add animated icons that framework will drive every frame with timing, hover/press state, and theme colors.
 
 API overview:
 
@@ -323,59 +281,46 @@ Notes:
 
 - Make your `TitleBar` persistent (store it in your app struct) so per-icon animation state is preserved across frames.
 - Clicks automatically request a repaint, so animations start immediately.
-- Theme colors are passed as `icon_color`; hover backgrounds use the title bar theme. Theme changes update these automatically.
+- Theme colors are passed as `icon_color`; hover backgrounds use title bar theme. Theme changes update these automatically.
 - You can override an icon color with `set_custom_icon_color(index, Some(color))`; pass `None` to return to theme-driven color.
 
 Painter-based example (minimal):
 
 ```rust
-use egui_desktop::{TitleBar, TitleBarOptions};
+use egui_desktop::{TitleBar, CustomIcon, KeyboardShortcut};
 
-// Build once and store in your app struct
-let mut title_bar = TitleBar::new(TitleBarOptions::new().with_title("Animated"));
+TitleBar::new("My App")
+    // Custom app icon (supports SVG, PNG, JPEG, etc.)
+    .with_custom_app_icon(include_bytes!("icon.svg"), "app-icon.svg")
 
-title_bar = title_bar.add_animated_icon(
-    Box::new(|painter, rect, icon_color, state, actx| {
-        // Simple pulse driven by hover
-        let target = if actx.hovered { 1.0 } else { 0.0 };
-        state.progress += (target - state.progress) * (actx.delta_seconds * 6.0);
-        let r = rect.width().min(rect.height()) * (0.25 + 0.15 * state.progress);
-        painter.circle_filled(rect.center(), r, icon_color);
-    }),
-    Some(Box::new(|| println!("Animated icon clicked"))),
-    Some("Animated".to_string()),
-    None,
-);
-```
+    // Add custom icon with callback and tooltip
+    .add_icon(
+        CustomIcon::Image(ImageSource::from_bytes("settings.svg", include_bytes!("settings.svg"))),
+        Some(Box::new(|| println!("Settings clicked!"))),
+        Some("Settings".to_string()),
+        None // No keyboard shortcut
+    )
 
-Ui-based example (no Painter required) – sun→moon style:
+    // Add custom icon with keyboard shortcut
+    .add_icon(
+        CustomIcon::Drawn(Box::new(|painter, rect, color| {
+            // Custom drawing code for notification bell
+            painter.circle_filled(rect.center(), rect.width() * 0.4, color);
+        })),
+        Some(Box::new(|| println!("Notifications clicked!"))),
+        Some("Notifications".to_string()),
+        Some(KeyboardShortcut::parse("ctrl+n")) // Ctrl+N shortcut
+    )
 
-```rust
-title_bar = title_bar.add_animated_ui_icon(
-    Box::new(|ui, rect, icon_color, state, actx| {
-        let speed = 6.0;
-        let target = if actx.hovered { 1.0 } else { 0.0 };
-        state.progress += (target - state.progress) * (actx.delta_seconds * speed);
-        let mut child = ui.child_ui(rect, egui::Layout::default(), None);
-        let center = rect.center();
-        let size = rect.height().min(rect.width());
-        let radius = size * 0.35;
-        if state.progress < 0.5 {
-            let sun_p = 1.0 - (state.progress * 2.0);
-            child.painter().circle(center, radius * 0.8 * sun_p, icon_color, egui::Stroke::NONE);
-        } else {
-            let moon_p = (state.progress - 0.5) * 2.0;
-            child.painter().circle(center, radius, icon_color, egui::Stroke::NONE);
-            let offset = radius * 0.6 * moon_p;
-            let angle = std::f32::consts::FRAC_PI_4;
-            let mask_center = egui::Pos2::new(center.x + angle.cos() * offset, center.y - angle.sin() * offset);
-            child.painter().circle(mask_center, radius, ui.visuals().widgets.noninteractive.bg_fill, egui::Stroke::NONE);
-        }
-    }),
-    None,
-    Some("Theme".to_string()),
-    None,
-);
+    .show(ctx);
+
+// Don't forget to handle shortcuts in your app's update loop
+impl eframe::App for MyApp {
+    fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.title_bar.handle_icon_shortcuts(ctx);
+        // ... rest of your app logic
+    }
+}
 ```
 
 Theme-aware coloring:
@@ -386,12 +331,7 @@ title_bar.set_custom_icon_color(0, None); // use theme color
 title_bar.set_custom_icon_color(0, Some(egui::Color32::from_rgb(255, 200, 0)));
 ```
 
-**Platform-specific positioning:**
-
-- **Windows/Linux**: Icons appear to the left of window control buttons
-- **macOS**: Icons appear to the right of traffic light buttons
-
-### Menu Integration
+### Menu System
 
 ```rust
 TitleBar::new("My App")
@@ -401,90 +341,16 @@ TitleBar::new("My App")
     .show(ctx);
 ```
 
-### Advanced Menu System with Submenus
-
-```rust
-use egui_desktop::{TitleBar, MenuItem, SubMenuItem, KeyboardShortcut};
-
-// Create complex menu structures with submenus and shortcuts
-let file_menu = MenuItem::new("File")
-    .add_subitem(
-        SubMenuItem::new("New")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+n"))
-            .with_callback(Box::new(|| println!("New file!")))
-    )
-    .add_subitem(
-        SubMenuItem::new("Open")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+o"))
-            .with_callback(Box::new(|| println!("Open file!")))
-    )
-    .add_subitem(
-        SubMenuItem::new("Save")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+s"))
-            .with_callback(Box::new(|| println!("Save file!")))
-            .with_separator() // Add separator after this item
-    )
-    .add_subitem(
-        SubMenuItem::new("Exit")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+q"))
-            .with_callback(Box::new(|| std::process::exit(0)))
-    );
-
-// Add submenus with nested sidemenus (cascading menus)
-let edit_menu = MenuItem::new("Edit")
-    .add_subitem(
-        SubMenuItem::new("Undo")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+z"))
-            .with_callback(Box::new(|| println!("Undo!")))
-    )
-    .add_subitem(
-        SubMenuItem::new("Cut")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+x"))
-            .with_callback(Box::new(|| println!("Cut!")))
-    )
-    .add_subitem(
-        SubMenuItem::new("Copy")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+c"))
-            .with_callback(Box::new(|| println!("Copy!")))
-    )
-    .add_subitem(
-        SubMenuItem::new("Paste")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+v"))
-            .with_callback(Box::new(|| println!("Paste!")))
-            .with_separator()
-    )
-    .add_subitem(
-        SubMenuItem::new("Find")
-            .with_shortcut(KeyboardShortcut::parse("ctrl+f"))
-            .with_callback(Box::new(|| println!("Find!")))
-            .add_child_subitem(
-                SubMenuItem::new("Find Next")
-                    .with_shortcut(KeyboardShortcut::parse("f3"))
-                    .with_callback(Box::new(|| println!("Find next!")))
-            )
-            .add_child_subitem(
-                SubMenuItem::new("Find Previous")
-                    .with_shortcut(KeyboardShortcut::parse("shift+f3"))
-                    .with_callback(Box::new(|| println!("Find previous!")))
-            )
-    );
-
-TitleBar::new("My App")
-    .add_menu_with_submenu(file_menu)
-    .add_menu_with_submenu(edit_menu)
-    .show(ctx);
-```
-
-### Keyboard Navigation System
+### Keyboard Navigation & Shortcuts
 
 The framework provides comprehensive keyboard navigation that follows platform standards:
 
-#### Activation
+#### Navigation Activation
 
 - **Alt** (Windows/Linux standard)
 - **Ctrl+F2** (macOS standard)
 
-#### Navigation
+#### Navigation Controls
 
 - **Arrow Keys**: Navigate through menu items
   - **Left/Right**: Navigate between top-level menus
@@ -513,13 +379,11 @@ The navigation system intelligently handles different contexts:
 
 #### Cross-Platform Compatibility
 
-The keyboard navigation follows platform conventions:
-
 - **Windows**: Alt activation, Enter selection
 - **macOS**: Ctrl+F2 activation, Space/Enter selection
 - **Linux**: Alt activation, Space/Enter selection
 
-### Keyboard Shortcuts
+#### Keyboard Shortcuts Parsing
 
 The framework supports simple, string-based keyboard shortcuts:
 
@@ -575,15 +439,46 @@ KeyboardShortcut::parse("ctrl+-")             // Ctrl+-
 - **Cascading sidemenus**: Automatically align with parent menu items
 - **Platform-aware**: Follows OS conventions for menu placement
 
-### Best Practices for Menu Design
+### Multi-Window Applications
 
-1. **Use consistent shortcuts**: Follow platform conventions (Ctrl+Z for undo, etc.)
-2. **Group related items**: Use separators to group logical menu sections
-3. **Provide keyboard alternatives**: Every mouse action should have a keyboard equivalent
-4. **Test navigation flow**: Ensure smooth navigation through all menu levels
-5. **Follow platform guidelines**: Use appropriate activation keys for each platform
+See `examples/multi_window.rs` for a complete `egui` 0.32 / `eframe` sample that opens additional native windows (viewports) with their own `TitleBar` instances:
 
-### Platform-Specific Title Visibility
+```bash
+cargo run --example multi_window
+```
+
+Highlights of example:
+
+- Independent `TitleBar` objects per window (main, Settings, About) with different button sets.
+- Windows are created via `ctx.show_viewport_deferred(...)` so they are actual OS-level windows, not embedded panels.
+- Shared application state is stored in `Arc<Mutex<...>>`, ensuring every window sees the same data.
+- Each new window is centered over the primary viewport by pairing `ViewportBuilder::with_position` with `ctx.input(|i| i.viewport().inner_rect)`.
+- Buttons inside of child windows demonstrate closing logic by sending `ViewportCommand::Close` back to eframe.
+
+Use this example as a starting point when you need multiple windows that stay visually consistent with egui-desktop's desktop chrome.
+
+### Advanced Customization
+
+```rust
+TitleBar::new(
+    TitleBarOptions::new()
+        .with_title("My App")
+        .with_background_color(Color32::from_rgb(30, 30, 30))
+        .with_hover_color(Color32::from_rgb(60, 60, 60))
+        .with_close_hover_color(Color32::from_rgb(232, 17, 35))
+        .with_title_color(Color32::from_rgb(200, 200, 200))
+        .with_title_font_size(14.0)
+        .with_title_visibility(true, true, false) // Platform-specific title visibility
+        .with_custom_app_icon(include_bytes!("icon.svg"), "app-icon.svg")
+)
+.show(ctx);
+```
+
+### Platform-Specific Customization
+
+#### Title Visibility
+
+Control whether the app title is displayed on each platform:
 
 ```rust
 use egui_desktop::{TitleBar, TitleBarOptions};
@@ -609,24 +504,7 @@ TitleBar::new(
 .show(ctx);
 ```
 
-### Advanced Customization
-
-```rust
-TitleBar::new(
-    TitleBarOptions::new()
-        .with_title("My App")
-        .with_background_color(Color32::from_rgb(30, 30, 30))
-        .with_hover_color(Color32::from_rgb(60, 60, 60))
-        .with_close_hover_color(Color32::from_rgb(232, 17, 35))
-        .with_title_color(Color32::from_rgb(200, 200, 200))
-        .with_title_font_size(14.0)
-        .with_title_visibility(true, true, false) // Platform-specific title visibility
-        .with_custom_app_icon(include_bytes!("icon.svg"), "app-icon.svg")
-)
-.show(ctx);
-```
-
-### Customizing Keyboard Selection Colors
+#### Keyboard Selection Colors
 
 You can customize the highlight color for keyboard navigation:
 
@@ -675,6 +553,8 @@ This creates a fully-featured demo with:
 | `custom_title_bar.rs` | Customized title bar with dark theme and menu items                                       |
 | `multi_platform.rs`   | Cross-platform demo showing OS-specific features                                          |
 | `no_title_app.rs`     | Title bar without title text (macOS: traffic lights only, Windows/Linux: icon + controls) |
+| `multi_window.rs`      | Multi-window application with independent title bars and shared state                        |
+| `animated_theme_icon.rs` | Animated theme icon with sun→moon transitions and keyboard shortcuts                    |
 
 ### Testing Keyboard Navigation
 
