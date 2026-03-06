@@ -1,16 +1,19 @@
 use eframe::egui;
+use egui::{CentralPanel, Color32, Context, Frame, SidePanel, Ui, Visuals};
 use egui_desktop::{
-    apply_rounded_corners, detect_system_dark_mode, render_resize_handles, CustomIcon,
-    KeyboardShortcut, MenuItem, SubMenuItem, ThemeMode, ThemeProvider, TitleBar, TitleBarOptions,
-    TitleBarTheme,
+    CustomIcon, KeyboardShortcut, MenuItem, SubMenuItem, ThemeMode, ThemeProvider, TitleBar,
+    TitleBarOptions, TitleBarTheme, apply_rounded_corners, detect_system_dark_mode,
+    render_resize_handles,
 };
-use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::sync::Mutex;
+use std::sync::{
+    Mutex,
+    atomic::{AtomicBool, AtomicU8, Ordering},
+};
 
-use crate::content::render_main_content;
-use crate::icons::draw_gear_icon;
-use crate::sidebar::render_sidebar;
-use crate::theme_provider::SimpleThemeProvider;
+use crate::{
+    content::render_main_content, icons::draw_gear_icon, sidebar::render_sidebar,
+    theme_provider::SimpleThemeProvider,
+};
 
 static TOGGLE_SIDEBAR: AtomicBool = AtomicBool::new(false);
 static THEME_CHANGE_REQUEST: AtomicU8 = AtomicU8::new(0); // 0 = none, 1 = Light, 2 = Dark, 3 = Auto, 4 = CustomLight, 5 = CustomDark
@@ -39,6 +42,7 @@ pub struct CustomThemeDemoApp {
     pub title_bar_initialized: bool,
     pub selected_custom_id: String,
     pub sidebar_animation: SidebarAnimation,
+    pub previous_window_size: egui::Vec2,
 }
 
 impl Default for CustomThemeDemoApp {
@@ -58,6 +62,7 @@ impl Default for CustomThemeDemoApp {
                 target_position: 1.0,
                 animation_speed: 12.0,
             },
+            previous_window_size: egui::Vec2::new(1200.0, 800.0),
         }
     }
 }
@@ -67,35 +72,35 @@ fn ease_linear(t: f32) -> f32 {
 }
 
 impl CustomThemeDemoApp {
-    pub fn get_text_color(&self, ui: &egui::Ui) -> egui::Color32 {
+    pub fn get_text_color(&self, ui: &Ui) -> Color32 {
         match self.app_theme {
-            AppTheme::Light => egui::Color32::BLACK,
-            AppTheme::Dark => egui::Color32::WHITE,
+            AppTheme::Light => Color32::BLACK,
+            AppTheme::Dark => Color32::WHITE,
             AppTheme::Auto => {
                 if ui.ctx().style().visuals.dark_mode {
-                    egui::Color32::WHITE
+                    Color32::WHITE
                 } else {
-                    egui::Color32::BLACK
+                    Color32::BLACK
                 }
             }
             AppTheme::CustomLight => {
                 match self.selected_custom_id.as_str() {
-                    "ocean" => egui::Color32::from_rgb(30, 58, 138), // Dark blue for ocean light
-                    "forest" => egui::Color32::from_rgb(34, 68, 34), // Dark green for forest light
-                    _ => egui::Color32::BLACK,
+                    "ocean" => Color32::from_rgb(30, 58, 138), // Dark blue for ocean light
+                    "forest" => Color32::from_rgb(34, 68, 34), // Dark green for forest light
+                    _ => Color32::BLACK,
                 }
             }
             AppTheme::CustomDark => {
                 match self.selected_custom_id.as_str() {
-                    "ocean" => egui::Color32::from_rgb(147, 197, 253), // Light blue for ocean dark
-                    "forest" => egui::Color32::from_rgb(134, 239, 172), // Light green for forest dark
-                    _ => egui::Color32::WHITE,
+                    "ocean" => Color32::from_rgb(147, 197, 253), // Light blue for ocean dark
+                    "forest" => Color32::from_rgb(134, 239, 172), // Light green for forest dark
+                    _ => Color32::WHITE,
                 }
             }
         }
     }
 
-    pub fn update_sidebar_animation(&mut self, ctx: &egui::Context) {
+    pub fn update_sidebar_animation(&mut self, ctx: &Context) {
         self.sidebar_animation.target_position = if self.show_sidebar { 1.0 } else { 0.0 };
 
         let delta_time = ctx.input(|i| i.unstable_dt);
@@ -278,7 +283,14 @@ impl CustomThemeDemoApp {
 }
 
 impl eframe::App for CustomThemeDemoApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, frame: &mut eframe::Frame) {
+        // Check for window resize and close all menus
+        let current_size = ctx.input(|i| i.content_rect().size());
+        if current_size != self.previous_window_size {
+            // Window was resized - any open menus will be automatically closed
+            self.previous_window_size = current_size;
+        }
+
         apply_rounded_corners(frame);
 
         // Handle theme change requests from menu
@@ -326,13 +338,13 @@ impl eframe::App for CustomThemeDemoApp {
             AppTheme::CustomLight | AppTheme::CustomDark => {
                 let _ = self.title_bar.switch_theme(ctx, &self.selected_custom_id);
             }
-            AppTheme::Light => ctx.set_visuals(egui::Visuals::light()),
-            AppTheme::Dark => ctx.set_visuals(egui::Visuals::dark()),
+            AppTheme::Light => ctx.set_visuals(Visuals::light()),
+            AppTheme::Dark => ctx.set_visuals(Visuals::dark()),
             AppTheme::Auto => {
                 if detect_system_dark_mode() {
-                    ctx.set_visuals(egui::Visuals::dark());
+                    ctx.set_visuals(Visuals::dark());
                 } else {
-                    ctx.set_visuals(egui::Visuals::light());
+                    ctx.set_visuals(Visuals::light());
                 }
             }
         }
@@ -357,15 +369,15 @@ impl eframe::App for CustomThemeDemoApp {
                 self.title_bar.update_theme_mode(ThemeMode::Light);
                 let _ = self.title_bar.switch_theme(ctx, &self.selected_custom_id);
                 self.title_bar.title_font_size = 16.0; // Larger size for custom themes
-                                                       // Adapt custom icon color based on theme
+                // Adapt custom icon color based on theme
                 match self.selected_custom_id.as_str() {
                     "ocean" => {
                         self.title_bar
-                            .set_custom_icon_color(0, Some(egui::Color32::from_rgb(59, 130, 246)));
+                            .set_custom_icon_color(0, Some(Color32::from_rgb(59, 130, 246)));
                     }
                     "forest" => {
                         self.title_bar
-                            .set_custom_icon_color(0, Some(egui::Color32::from_rgb(16, 185, 129)));
+                            .set_custom_icon_color(0, Some(Color32::from_rgb(16, 185, 129)));
                     }
                     _ => {
                         self.title_bar.set_custom_icon_color(0, None);
@@ -376,15 +388,15 @@ impl eframe::App for CustomThemeDemoApp {
                 self.title_bar.update_theme_mode(ThemeMode::Dark);
                 let _ = self.title_bar.switch_theme(ctx, &self.selected_custom_id);
                 self.title_bar.title_font_size = 16.0; // Larger size for custom themes
-                                                       // Adapt custom icon color based on theme
+                // Adapt custom icon color based on theme
                 match self.selected_custom_id.as_str() {
                     "ocean" => {
                         self.title_bar
-                            .set_custom_icon_color(0, Some(egui::Color32::from_rgb(147, 197, 253)));
+                            .set_custom_icon_color(0, Some(Color32::from_rgb(147, 197, 253)));
                     }
                     "forest" => {
                         self.title_bar
-                            .set_custom_icon_color(0, Some(egui::Color32::from_rgb(52, 211, 153)));
+                            .set_custom_icon_color(0, Some(Color32::from_rgb(52, 211, 153)));
                     }
                     _ => {
                         self.title_bar.set_custom_icon_color(0, None);
@@ -395,7 +407,7 @@ impl eframe::App for CustomThemeDemoApp {
                 self.title_bar.update_theme_mode(ThemeMode::System);
                 self.title_bar.sync_with_system_theme();
                 self.title_bar.title_font_size = 12.0; // Default size
-                                                       // Reset custom icon color to follow system visuals
+                // Reset custom icon color to follow system visuals
                 self.title_bar.set_custom_icon_color(0, None);
             }
         }
@@ -404,15 +416,15 @@ impl eframe::App for CustomThemeDemoApp {
 
         self.title_bar.show(ctx);
 
-        egui::CentralPanel::default()
-            .frame(egui::Frame::NONE.fill(ctx.style().visuals.panel_fill))
+        CentralPanel::default()
+            .frame(Frame::NONE.fill(ctx.style().visuals.panel_fill))
             .show(ctx, |_ui| {});
 
         let eased_position = ease_linear(self.sidebar_animation.current_position);
         let sidebar_width = 300.0 * eased_position;
 
         if self.sidebar_animation.current_position > 0.01 {
-            egui::SidePanel::left("sidebar")
+            SidePanel::left("sidebar")
                 .resizable(false)
                 .exact_width(sidebar_width)
                 .show(ctx, |ui| {
@@ -424,7 +436,7 @@ impl eframe::App for CustomThemeDemoApp {
                 });
         }
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        CentralPanel::default().show(ctx, |ui| {
             render_main_content(self, ui);
         });
 

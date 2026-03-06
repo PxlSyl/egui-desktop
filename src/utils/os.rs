@@ -1,5 +1,4 @@
-use std::error::Error;
-use std::ffi::c_void;
+use std::{error::Error, ffi::c_void};
 
 #[cfg(target_os = "windows")]
 mod platform {

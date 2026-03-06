@@ -1,8 +1,9 @@
 use crate::app::{AppTheme, CustomThemeDemoApp};
+use egui::{ScrollArea, Ui};
 use egui_desktop::detect_system_dark_mode;
 
-pub fn render_sidebar(app: &mut CustomThemeDemoApp, ui: &mut egui::Ui) {
-    egui::ScrollArea::vertical()
+pub fn render_sidebar(app: &mut CustomThemeDemoApp, ui: &mut Ui) {
+    ScrollArea::vertical()
         .max_width(ui.available_width())
         .show(ui, |ui| {
             ui.add_space(6.0);

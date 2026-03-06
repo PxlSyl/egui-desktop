@@ -1,6 +1,5 @@
-use egui::{Key, Modifiers};
-use std::collections::HashMap;
-use std::sync::Mutex;
+use egui::{Context, Key, Modifiers};
+use std::{collections::HashMap, sync::Mutex};
 
 // Global state to track shortcut states across frames
 lazy_static::lazy_static! {
@@ -183,7 +182,7 @@ impl KeyboardShortcut {
     }
 
     /// Check if this shortcut was just pressed
-    pub fn just_pressed(&self, ctx: &egui::Context) -> bool {
+    pub fn just_pressed(&self, ctx: &Context) -> bool {
         // Create a unique key for this shortcut
         let shortcut_key = format!(
             "{:?}_{}_{}_{}_{}",

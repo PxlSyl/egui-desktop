@@ -1,6 +1,21 @@
-use egui::{Color32, ImageSource};
-
 use crate::theme::ThemeMode;
+use egui::{Color32, ImageSource, load::Bytes};
+use std::borrow::Cow;
+
+/// Hamburger menu animation style
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum HamburgerStyle {
+    /// Static hamburger icon (3 horizontal lines)
+    Static,
+    /// Animated hamburger icon (3 bars ↔ 3 dots with rotation)
+    Animated,
+}
+
+impl Default for HamburgerStyle {
+    fn default() -> Self {
+        Self::Static
+    }
+}
 
 /// Configuration options for the title bar component.
 #[derive(Debug, Clone)]
@@ -51,6 +66,8 @@ pub struct TitleBarOptions {
     pub show_minimize_button: Option<bool>,
     /// Spacing between custom icons in pixels.
     pub icon_spacing: Option<f32>,
+    /// Hamburger menu animation style.
+    pub hamburger_style: HamburgerStyle,
 }
 
 impl Default for TitleBarOptions {
@@ -79,6 +96,7 @@ impl Default for TitleBarOptions {
             show_maximize_button: None,
             show_minimize_button: None,
             icon_spacing: None,
+            hamburger_style: HamburgerStyle::default(),
         }
     }
 }
@@ -195,8 +213,8 @@ impl TitleBarOptions {
     /// Set an app icon from embedded image bytes.
     pub fn with_app_icon(mut self, bytes: &'static [u8], uri: &'static str) -> Self {
         let icon = ImageSource::Bytes {
-            uri: std::borrow::Cow::Borrowed(uri),
-            bytes: egui::load::Bytes::Static(bytes),
+            uri: Cow::Borrowed(uri),
+            bytes: Bytes::Static(bytes),
         };
         self.app_icon = Some(icon);
         self
@@ -223,6 +241,12 @@ impl TitleBarOptions {
     /// Set spacing between custom icons in pixels.
     pub fn with_icon_spacing(mut self, spacing: f32) -> Self {
         self.icon_spacing = Some(spacing);
+        self
+    }
+
+    /// Set hamburger menu animation style.
+    pub fn with_hamburger_style(mut self, style: HamburgerStyle) -> Self {
+        self.hamburger_style = style;
         self
     }
 }

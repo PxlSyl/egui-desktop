@@ -1,10 +1,12 @@
 use eframe::egui;
-use egui_desktop::{apply_rounded_corners, render_resize_handles, TitleBar, TitleBarOptions};
+use egui::{Context, ViewportBuilder};
+use egui_desktop::{TitleBar, TitleBarOptions, apply_rounded_corners, render_resize_handles};
 use egui_extras::install_image_loaders;
 
 struct MyApp {
     name: String,
     click_count: i32,
+    previous_window_size: egui::Vec2,
 }
 
 impl Default for MyApp {
@@ -12,12 +14,20 @@ impl Default for MyApp {
         Self {
             name: "egui-desktop-ui Demo".to_string(),
             click_count: 0,
+            previous_window_size: egui::Vec2::new(800.0, 600.0),
         }
     }
 }
 
 impl eframe::App for MyApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, frame: &mut eframe::Frame) {
+        // Check for window resize and close all menus
+        let current_size = ctx.input(|i| i.content_rect().size());
+        if current_size != self.previous_window_size {
+            // Window was resized - any open menus will be automatically closed
+            self.previous_window_size = current_size;
+        }
+
         // Apply native rounded corners (only called once)
         apply_rounded_corners(frame);
 
@@ -29,7 +39,7 @@ impl eframe::App for MyApp {
 
         // Your app content here
         egui::CentralPanel::default().show(ctx, |ui| {
-            ui.heading("Hello from egui-desktop-ui!");
+            ui.heading("Hello from egui-desktop!");
             ui.separator();
 
             ui.label("This example demonstrates:");
@@ -65,7 +75,7 @@ impl eframe::App for MyApp {
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
+        viewport: ViewportBuilder::default()
             .with_inner_size([800.0, 600.0])
             .with_min_inner_size([800.0, 600.0])
             .with_decorations(false),
@@ -73,7 +83,7 @@ fn main() -> Result<(), eframe::Error> {
     };
 
     eframe::run_native(
-        "Egui Desktop UI Demo",
+        "Egui Desktop Demo",
         options,
         Box::new(|cc| {
             install_image_loaders(&cc.egui_ctx);

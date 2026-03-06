@@ -18,6 +18,8 @@ pub struct SubMenuItem {
     pub callback: Option<Box<dyn Fn() + Send + Sync>>,
     /// Optional nested submenu items.
     pub children: Vec<SubMenuItem>,
+    /// Stable unique identifier for this menu item (prevents egui ID collisions)
+    pub id: Option<String>,
 }
 
 impl Debug for SubMenuItem {
@@ -41,6 +43,7 @@ impl Clone for SubMenuItem {
             separator_after: self.separator_after,
             callback: None, // Can't clone callbacks, set to None
             children: self.children.clone(),
+            id: self.id.clone(),
         }
     }
 }
@@ -55,6 +58,7 @@ impl SubMenuItem {
             separator_after: false,
             callback: None,
             children: Vec::new(),
+            id: None,
         }
     }
 
@@ -88,6 +92,12 @@ impl SubMenuItem {
         self
     }
 
+    /// Set a stable unique ID for this menu item (prevents egui ID collisions)
+    pub fn with_id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
     /// Replace the children of this submenu.
     pub fn with_children(mut self, children: Vec<SubMenuItem>) -> Self {
         self.children = children;
@@ -104,6 +114,8 @@ pub struct MenuItem {
     pub subitems: Vec<SubMenuItem>,
     /// Whether the top-level menu is enabled.
     pub enabled: bool,
+    /// Stable unique identifier for this menu (prevents egui ID collisions)
+    pub id: Option<String>,
 }
 
 impl MenuItem {
@@ -113,6 +125,7 @@ impl MenuItem {
             label: label.to_string(),
             subitems: Vec::new(),
             enabled: true,
+            id: None,
         }
     }
 
@@ -126,5 +139,16 @@ impl MenuItem {
     pub fn disabled(mut self) -> Self {
         self.enabled = false;
         self
+    }
+
+    /// Set a stable unique ID for this menu (prevents egui ID collisions)
+    pub fn with_id(mut self, id: &str) -> Self {
+        self.id = Some(id.to_string());
+        self
+    }
+
+    /// Get a stable ID for egui widgets (fallback to label if no ID set)
+    pub fn get_stable_id(&self) -> String {
+        self.id.as_ref().unwrap_or(&self.label).clone()
     }
 }

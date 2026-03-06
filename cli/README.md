@@ -5,7 +5,7 @@ Simple CLI tool to initialize new egui-desktop projects with a complete modular 
 ## Installation
 
 ```bash
-cargo install --path cli
+cargo install egui-desktop-cli
 ```
 
 ## Usage
@@ -14,7 +14,27 @@ cargo install --path cli
 egui-desktop my-awesome-app
 ```
 
-This will create a new directory `my-awesome-app` with a complete modular project structure:
+This will create a new directory `my-awesome-app` with a complete modular project structure.
+
+### Testing without publishing the crate
+
+To try the generated project against the **local** egui-desktop crate (e.g. before publishing):
+
+- **From the egui-desktop repo root** (project created inside the repo):
+  ```bash
+  cargo run --manifest-path cli/Cargo.toml -- my-app --local
+  cd my-app && cargo run
+  ```
+  This uses `egui-desktop = { path = ".." }` in the generated `Cargo.toml`.
+
+- **From anywhere** with an explicit path to the crate:
+  ```bash
+  egui-desktop my-app --path /path/to/egui-desktop-ui
+  cd my-app && cargo run
+  ```
+
+Alternatively, after generating a project, you can edit its `Cargo.toml` and replace  
+`egui-desktop = "0.2.4"` with `egui-desktop = { path = "../egui-desktop-ui" }` (adjust the path as needed).
 
 ```
 my-awesome-app/

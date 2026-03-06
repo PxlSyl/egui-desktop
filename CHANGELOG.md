@@ -5,6 +5,22 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.4] - 2026-03-05
+
+### Added
+
+- **Responsive menu bar**: Menu items automatically adapt to available width; items that do not fit are moved into an overflow area
+- **Overflow menu (dots / hamburger)**: When space is limited, a "…" (dots) indicator shows overflow items in a dropdown; in minimal mode (no items fit), a hamburger icon opens the full menu list (hamburger available in **static** or **animated** style)
+- **Full keyboard navigation**: Activate with Alt or Ctrl+F2; arrow keys move selection, Enter/Space open submenus or run actions, Left/Escape close levels; navigation works in the bar, in the overflow overlay, and in nested submenus
+- **Recursive submenus to arbitrary depth**: Submenus can nest without a fixed limit; state, navigation, and rendering are fully recursive (path-based rendering with `path_prefix`, single `while` loop over `menus_to_render`)
+- **Mouse/keyboard state sync**: Any mouse action (click on bar item, overflow, overlay item, submenu item, open cascade, click outside) updates keyboard state so the next keypress matches what is on screen; after validating an item with Enter in the overflow overlay, dots remain selected so Enter reopens the overlay
+
+### Changed
+
+- **Menu module layout**: `menu/api` renamed to `menu/core`; `rendering` and `submenu` moved under `menu/core/render/`; submenu logic split into `submenu.rs` (orchestration) and `submenu_overlay.rs` (single-level overlay drawing)
+- **Overlay navigation**: Overflow overlay keyboard handling moved to `handle_overflow.rs` (`handle_overflow_overlay`); same logic for both dots and pure hamburger mode
+- **Recursive rendering**: Cascade overlays are rendered in a single growing list with `path_prefix` per overlay; keyboard filter and selection use depth from path length
+
 ## [0.2.3] - 2026-02-26
 
 ### Changed
@@ -66,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 Initial alpha release with basic title bar, menu system, and theming support.
 
+[0.2.4]: https://github.com/PxlSyl/egui-desktop/releases/tag/v0.2.4
 [0.2.3]: https://github.com/PxlSyl/egui-desktop/releases/tag/v0.2.3
 [0.2.2]: https://github.com/PxlSyl/egui-desktop/releases/tag/v0.2.2
 [0.2.1]: https://github.com/PxlSyl/egui-desktop/releases/tag/v0.2.1

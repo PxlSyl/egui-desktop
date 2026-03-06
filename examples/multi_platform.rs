@@ -1,7 +1,8 @@
 use eframe::egui;
+use egui::{Color32, Context, Ui, ViewportBuilder};
 use egui_desktop::{
-    apply_rounded_corners, render_resize_handles, supports_native_rounded_corners, TitleBar,
-    TitleBarOptions,
+    TitleBar, TitleBarOptions, apply_rounded_corners, render_resize_handles,
+    supports_native_rounded_corners,
 };
 use egui_extras::install_image_loaders;
 
@@ -22,13 +23,13 @@ impl Default for MultiPlatformApp {
 }
 
 impl eframe::App for MultiPlatformApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, frame: &mut eframe::Frame) {
         // Apply native rounded corners (only called once)
         apply_rounded_corners(frame);
 
         // Platform-appropriate title bar with default icon
         TitleBar::new(TitleBarOptions::new().with_title("Multi-Platform Demo"))
-            .with_background_color(egui::Color32::from_rgb(35, 35, 35)) // Dark theme
+            .with_background_color(Color32::from_rgb(35, 35, 35)) // Dark theme
             .show(ctx);
 
         // Render resize handles for manual window resizing
@@ -90,7 +91,7 @@ impl eframe::App for MultiPlatformApp {
 }
 
 impl MultiPlatformApp {
-    fn show_platform_details(&self, ui: &mut egui::Ui) {
+    fn show_platform_details(&self, ui: &mut Ui) {
         egui::Window::new("Platform Details")
             .open(&mut true)
             .show(ui.ctx(), |ui| {
@@ -107,7 +108,7 @@ impl MultiPlatformApp {
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
+        viewport: ViewportBuilder::default()
             .with_inner_size([800.0, 600.0])
             .with_min_inner_size([800.0, 600.0])
             .with_decorations(false),

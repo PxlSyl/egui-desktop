@@ -1,4 +1,5 @@
 use eframe::egui;
+use egui::{CentralPanel, Context, ViewportBuilder, ViewportCommand, ViewportId, pos2, vec2};
 use egui_desktop::{
     TitleBar, TitleBarOptions, apply_rounded_corners, apply_rounded_corners_to_viewport,
     render_resize_handles,
@@ -67,7 +68,7 @@ impl Default for MultiWindowApp {
 }
 
 impl eframe::App for MultiWindowApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, frame: &mut eframe::Frame) {
         // Apply native rounded corners to the main window
         apply_rounded_corners(frame);
 
@@ -82,7 +83,7 @@ impl eframe::App for MultiWindowApp {
         let settings_open = self.settings_open.clone();
         let about_open = self.about_open.clone();
 
-        egui::CentralPanel::default().show(ctx, |ui| {
+        CentralPanel::default().show(ctx, |ui| {
             ui.heading("Multi-Window Application Demo");
             ui.separator();
 
@@ -140,8 +141,8 @@ impl eframe::App for MultiWindowApp {
 
         // Create Settings window
         if *self.settings_open.lock().unwrap() {
-            let settings_size = egui::vec2(500.0, 400.0);
-            let viewport_id = egui::ViewportId::from_hash_of("settings_window");
+            let settings_size = vec2(500.0, 400.0);
+            let viewport_id = ViewportId::from_hash_of("settings_window");
 
             // Calculate initial position more reliably
             let initial_pos = if let Some(inner_rect) = ctx.input(|i| i.viewport().inner_rect) {
@@ -151,10 +152,10 @@ impl eframe::App for MultiWindowApp {
                 egui::pos2(100.0, 100.0)
             };
 
-            let viewport_builder = egui::ViewportBuilder::default()
+            let viewport_builder = ViewportBuilder::default()
                 .with_title("Settings")
                 .with_inner_size(settings_size)
-                .with_min_inner_size(egui::vec2(400.0, 300.0))
+                .with_min_inner_size(vec2(400.0, 300.0))
                 .with_decorations(false)
                 .with_resizable(true)
                 .with_position(initial_pos);
@@ -182,7 +183,7 @@ impl eframe::App for MultiWindowApp {
                 // Settings window content
                 let app_state = app_state.clone();
                 let settings_open = settings_open.clone();
-                egui::CentralPanel::default().show(ctx, |ui| {
+                CentralPanel::default().show(ctx, |ui| {
                     ui.heading("Settings");
                     ui.separator();
 
@@ -213,7 +214,7 @@ impl eframe::App for MultiWindowApp {
 
                     if ui.button("Close Settings").clicked() {
                         *settings_open.lock().unwrap() = false;
-                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                        ctx.send_viewport_cmd(ViewportCommand::Close);
                     }
                 });
             });
@@ -221,18 +222,18 @@ impl eframe::App for MultiWindowApp {
 
         // Create About window
         if *self.about_open.lock().unwrap() {
-            let about_size = egui::vec2(400.0, 300.0);
-            let viewport_id = egui::ViewportId::from_hash_of("about_window");
+            let about_size = vec2(400.0, 300.0);
+            let viewport_id = ViewportId::from_hash_of("about_window");
 
             // Calculate initial position more reliably
             let initial_pos = if let Some(inner_rect) = ctx.input(|i| i.viewport().inner_rect) {
                 inner_rect.center() - about_size * 0.5
             } else {
                 // Fallback to screen center if we can't get main window position
-                egui::pos2(150.0, 150.0)
+                pos2(150.0, 150.0)
             };
 
-            let viewport_builder = egui::ViewportBuilder::default()
+            let viewport_builder = ViewportBuilder::default()
                 .with_title("About")
                 .with_inner_size(about_size)
                 .with_min_inner_size(egui::vec2(350.0, 250.0))
@@ -263,7 +264,7 @@ impl eframe::App for MultiWindowApp {
                 // About window content
                 let app_state = app_state.clone();
                 let about_open = about_open.clone();
-                egui::CentralPanel::default().show(ctx, |ui| {
+                CentralPanel::default().show(ctx, |ui| {
                     ui.heading("About Multi-Window Demo");
                     ui.separator();
 
@@ -288,7 +289,7 @@ impl eframe::App for MultiWindowApp {
 
                     if ui.button("Close About").clicked() {
                         *about_open.lock().unwrap() = false;
-                        ctx.send_viewport_cmd(egui::ViewportCommand::Close);
+                        ctx.send_viewport_cmd(ViewportCommand::Close);
                     }
                 });
             });
@@ -298,7 +299,7 @@ impl eframe::App for MultiWindowApp {
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
+        viewport: ViewportBuilder::default()
             .with_inner_size([800.0, 600.0])
             .with_min_inner_size([600.0, 400.0])
             .with_decorations(false),

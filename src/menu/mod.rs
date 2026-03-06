@@ -1,5 +1,5 @@
 /// Public API for rendering menus in the title bar.
-pub mod api;
+pub mod core;
 /// Menu item types and submenu structures.
 pub mod items;
 /// Minimal horizontal menu bar component.

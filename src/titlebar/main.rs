@@ -1,30 +1,28 @@
-use egui::{Color32, Id, ImageSource, Painter};
+use egui::{Color32, FontId, Id, ImageSource, Painter, Rect, Ui};
 
-use crate::TitleBarOptions;
-use crate::menu::items::MenuItem;
-use crate::theme::{ThemeMode, ThemeProvider, TitleBarTheme, detect_system_dark_mode};
+use crate::{
+    KeyboardShortcut, ThemeProvider, TitleBarOptions,
+    menu::{
+        core::states::{nav_state::KeyboardState, render_state::RenderState},
+        items::MenuItem,
+    },
+    theme::{ThemeMode, TitleBarTheme, detect_system_dark_mode},
+    titlebar::options::HamburgerStyle,
+};
 
 /// Custom icon for the title bar
 pub enum CustomIcon {
     /// SVG/PNG/JPEG image icon
     Image(ImageSource<'static>),
     /// Custom drawing function
-    Drawn(Box<dyn Fn(&Painter, egui::Rect, Color32) + Send + Sync>),
+    Drawn(Box<dyn Fn(&Painter, Rect, Color32) + Send + Sync>),
     /// Animated icon with framework-managed animation state and context
     Animated(
-        Box<
-            dyn Fn(&Painter, egui::Rect, Color32, &mut IconAnimationState, AnimationCtx)
-                + Send
-                + Sync,
-        >,
+        Box<dyn Fn(&Painter, Rect, Color32, &mut IconAnimationState, AnimationCtx) + Send + Sync>,
     ),
     /// Animated icon that renders using Ui primitives instead of Painter
     AnimatedUi(
-        Box<
-            dyn Fn(&mut egui::Ui, egui::Rect, Color32, &mut IconAnimationState, AnimationCtx)
-                + Send
-                + Sync,
-        >,
+        Box<dyn Fn(&mut Ui, Rect, Color32, &mut IconAnimationState, AnimationCtx) + Send + Sync>,
     ),
 }
 
@@ -41,7 +39,7 @@ pub struct CustomIconButton {
     /// Optional click callback.
     pub callback: Option<Box<dyn Fn() + Send + Sync>>,
     /// Optional keyboard shortcut for this icon.
-    pub shortcut: Option<crate::KeyboardShortcut>,
+    pub shortcut: Option<KeyboardShortcut>,
 }
 
 /// Title bar state and configuration.
@@ -68,12 +66,19 @@ pub struct TitleBar {
     pub menu_items: Vec<(String, Option<Box<dyn Fn() + Send + Sync>>)>,
     /// Menus with submenus.
     pub menu_items_with_submenus: Vec<MenuItem>,
+    /// Menu order tracking - preserves chronological addition order
+    /// Stores (is_submenu, index) where is_submenu = true for submenu items, false for simple items
+    pub menu_order: Vec<(bool, usize)>,
     /// Index of currently open submenu.
     pub open_submenu: Option<usize>,
     /// Time when submenu was opened.
     pub submenu_open_time: Option<f64>,
     /// Guard to prevent immediate close after open in same frame.
     pub submenu_just_opened_frame: bool,
+    /// Flag to track if submenu was opened from hamburger menu
+    pub submenu_from_hamburger: bool,
+    /// Time when hamburger menu was opened (to prevent immediate closure)
+    pub hamburger_open_time: Option<f64>,
     /// Last click time used for overlay logic.
     pub last_click_time: f64,
     /// Monotonic id of last click used to open submenu.
@@ -101,18 +106,8 @@ pub struct TitleBar {
     pub keyboard_navigation_active: bool,
     /// Currently selected top-level menu index.
     pub selected_menu_index: Option<usize>,
-    /// Currently selected submenu item index (deprecated; use `submenu_selections`).
-    pub selected_submenu_index: Option<usize>,
     /// Time of last keyboard navigation.
     pub last_keyboard_nav_time: f64,
-    /// When set, force-open child submenu for this subitem index.
-    pub force_open_child_subitem: Option<usize>,
-    /// Currently selected child submenu item (deprecated; use `child_submenu_selections`).
-    pub selected_child_submenu_index: Option<usize>,
-    /// Map submenu index to selected item index.
-    pub submenu_selections: std::collections::HashMap<usize, usize>,
-    /// Map submenu index to selected child index.
-    pub child_submenu_selections: std::collections::HashMap<usize, usize>,
     /// Menu text color.
     pub menu_text_color: Color32,
     /// Menu text size in points.
@@ -155,6 +150,29 @@ pub struct TitleBar {
     pub icon_animation_states: Vec<IconAnimationState>,
     /// Spacing between custom icons in pixels.
     pub icon_spacing: f32,
+    // Responsive menu behavior
+    /// Whether hamburger menu is currently open.
+    pub hamburger_menu_open: bool,
+    /// Hamburger menu animation style.
+    pub hamburger_style: HamburgerStyle,
+    /// Hamburger menu animation state.
+    pub hamburger_animation_state: IconAnimationState,
+    /// Actual X position of hamburger overlay after adjustment (for submenu positioning).
+    pub hamburger_overlay_x: Option<f32>,
+    /// Track which items are currently visible (fitted in available space).
+    pub items_fitted: Vec<usize>,
+    /// Track if dots are selected by keyboard navigation.
+    pub dots_selected: bool,
+    /// Track selected item index in hamburger/dots overlay.
+    pub overlay_selected_index: Option<usize>,
+    /// Force close overlay on next render frame.
+    pub force_close_overlay: bool,
+    /// Recursive navigation state for unlimited submenu levels
+    pub recursive_state: KeyboardState,
+    /// Recursive render state for unlimited submenu levels (replaces legacy variables)
+    pub render_state: RenderState,
+    /// Deferred menu leaf action (menu_index, path) so callback runs after releasing menu borrow
+    pub pending_menu_leaf_action: Option<(usize, Vec<usize>)>,
 }
 
 impl TitleBar {
@@ -208,9 +226,12 @@ impl TitleBar {
                 .unwrap_or(theme.minimize_icon_color),
             menu_items: Vec::new(),
             menu_items_with_submenus: Vec::new(),
+            menu_order: Vec::new(),
             open_submenu: None,
             submenu_open_time: None,
             submenu_just_opened_frame: false,
+            submenu_from_hamburger: false,
+            hamburger_open_time: None,
             last_click_time: 0.0,
             last_click_id: 0,
             menu_positions: Vec::new(),
@@ -219,12 +240,13 @@ impl TitleBar {
             // Initialize keyboard navigation state
             keyboard_navigation_active: false,
             selected_menu_index: None,
-            selected_submenu_index: None,
             last_keyboard_nav_time: 0.0,
-            force_open_child_subitem: None,
-            selected_child_submenu_index: None,
-            submenu_selections: std::collections::HashMap::new(),
-            child_submenu_selections: std::collections::HashMap::new(),
+            // Track which items are currently visible (fitted in available space)
+            items_fitted: Vec::new(),
+            // Track if dots are selected by keyboard navigation
+            dots_selected: false,
+            // Track selected item index in hamburger/dots overlay
+            overlay_selected_index: None,
             title_color: options.title_color.unwrap_or(theme.title_color),
             title_font_size: options.title_font_size.unwrap_or(12.0),
             theme_mode: options.theme_mode,
@@ -255,9 +277,95 @@ impl TitleBar {
             show_minimize_button: options.show_minimize_button.unwrap_or(true),
             icon_animation_states: Vec::new(),
             icon_spacing: options.icon_spacing.unwrap_or(4.0),
+            // Responsive menu state (automatic behavior)
+            hamburger_menu_open: false,
+            hamburger_style: options.hamburger_style,
+            hamburger_animation_state: IconAnimationState::default(),
+            hamburger_overlay_x: None,
+            force_close_overlay: false,
+            // Initialize recursive navigation state
+            recursive_state: KeyboardState::new(),
+            render_state: RenderState::new(),
+            pending_menu_leaf_action: None,
         };
 
         title_bar
+    }
+
+    /// Calculate the total width taken by control buttons and custom icons
+    pub fn calculate_control_buttons_width(&self) -> f32 {
+        let mut total_width = 0.0;
+
+        // Native control buttons (platform-specific)
+        #[cfg(target_os = "macos")]
+        {
+            // macOS has different control buttons layout (left side)
+            total_width += 0.0; // No buttons on macOS
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+            // Windows/Linux: close, minimize, maximize buttons
+            // Each button has 46px hover zone (from desired_size = Vec2::new(46.0, 32.0))
+            // Total: 46 + 46 + 46 = 138px for 3 buttons
+            if self.show_close_button {
+                total_width += 46.0; // button hover zone
+            }
+            if self.show_minimize_button {
+                total_width += 46.0; // button hover zone
+            }
+            if self.show_maximize_button {
+                total_width += 46.0; // button hover zone
+            }
+        }
+
+        // Custom icons (from render_custom_icons in api.rs)
+        if !self.custom_icons.is_empty() {
+            let icon_size = 16.0; // From: let icon_size = 16.0;
+            let spacing = self.icon_spacing; // From: let spacing = self.icon_spacing;
+            let extra_spacing = 16.0; // From: let extra_spacing = 16.0;
+
+            // Formula from: total_width = self.custom_icons.len() as f32 * (icon_size + spacing) - spacing + extra_spacing;
+            total_width +=
+                self.custom_icons.len() as f32 * (icon_size + spacing) - spacing + extra_spacing;
+        }
+
+        total_width
+    }
+
+    /// Calculate the total width needed for all menu items
+    pub fn calculate_menu_width(&self, ui: &mut Ui) -> f32 {
+        let mut total_width = 0.0;
+
+        // Calculate width for simple menu items
+        for (label, _) in &self.menu_items {
+            let label_width = ui.fonts_mut(|f| {
+                f.layout_no_wrap(
+                    label.clone(),
+                    FontId::proportional(self.menu_text_size),
+                    self.menu_text_color,
+                )
+                .size()
+                .x
+            }) + 16.0; // Add padding
+            total_width += label_width;
+        }
+
+        // Calculate width for submenu items
+        for menu_item in &self.menu_items_with_submenus {
+            let label_width = ui.fonts_mut(|f| {
+                f.layout_no_wrap(
+                    menu_item.label.clone(),
+                    FontId::proportional(self.menu_text_size),
+                    self.menu_text_color,
+                )
+                .size()
+                .x
+            }) + 16.0; // Add padding
+            total_width += label_width;
+        }
+
+        total_width
     }
 }
 

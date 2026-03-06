@@ -1,7 +1,6 @@
 use anyhow::{Context, Result};
 use clap::Parser;
-use std::fs;
-use std::path::Path;
+use std::{fs, path::Path};
 
 const EGUI_DESKTOP_VERSION: &str = env!("CARGO_PKG_VERSION");
 
@@ -12,6 +11,14 @@ const EGUI_DESKTOP_VERSION: &str = env!("CARGO_PKG_VERSION");
 struct Cli {
     /// Project name
     name: String,
+
+    /// Use a path dependency to the given directory instead of crates.io (for testing without publishing)
+    #[arg(long)]
+    path: Option<String>,
+
+    /// Shorthand for --path .. (use when generating the project inside the egui-desktop repo)
+    #[arg(long)]
+    local: bool,
 }
 
 fn main() -> Result<()> {
@@ -58,7 +65,15 @@ fn main() -> Result<()> {
             .with_context(|| format!("Failed to write {}", target_file))?;
     }
 
-    // Create Cargo.toml
+    // Create Cargo.toml (path dependency for local testing, or version from crates.io)
+    let egui_desktop_dep = if cli.local {
+        r#"egui-desktop = { path = ".." }"#.to_string()
+    } else if let Some(ref path) = cli.path {
+        format!(r#"egui-desktop = {{ path = "{}" }}"#, path)
+    } else {
+        format!(r#"egui-desktop = "{}""#, EGUI_DESKTOP_VERSION)
+    };
+
     let cargo_toml_content = format!(
         r#"[package]
 name = "{}"
@@ -66,10 +81,10 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-egui-desktop = "{}"
-egui_extras = {{ version = "0.32", features = ["all_loaders"] }}
-eframe = "0.32"
-egui = "0.32"
+{}
+egui_extras = {{ version = "0.33.3", features = ["all_loaders"] }}
+eframe = "0.33.3"
+egui = "0.33.3"
 
 [profile.release]
 strip = true
@@ -77,7 +92,7 @@ opt-level = "s"
 lto = true
 codegen-units = 1
 "#,
-        cli.name, EGUI_DESKTOP_VERSION
+        cli.name, egui_desktop_dep
     );
 
     let cargo_toml_path = Path::new(&cli.name).join("Cargo.toml");
@@ -87,6 +102,9 @@ codegen-units = 1
     println!("✅ Project created successfully!");
     println!("📁 Directory: {}", cli.name);
     println!("🚀 To run: cd {} && cargo run", cli.name);
+    if cli.local || cli.path.is_some() {
+        println!("📌 Using local path dependency (egui-desktop not from crates.io)");
+    }
 
     Ok(())
 }

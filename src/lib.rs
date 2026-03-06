@@ -29,8 +29,7 @@ pub mod titlebar;
 /// Utility helpers (OS interop, resize handles, rounded corners).
 pub mod utils;
 
-pub use menu::shortcuts::KeyboardShortcut;
-pub use menu::{MenuItem, SubMenuItem};
+pub use menu::{MenuItem, SubMenuItem, shortcuts::KeyboardShortcut};
 pub use theme::{ThemeError, ThemeMode, ThemeProvider, TitleBarTheme, detect_system_dark_mode};
 pub use titlebar::{main::CustomIcon, main::TitleBar, options::TitleBarOptions};
 pub use utils::*;

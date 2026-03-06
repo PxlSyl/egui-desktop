@@ -22,6 +22,14 @@ A comprehensive desktop UI framework for egui applications with native-like wind
   <img src="screenshots/mac4.png" alt="egui-desktop macOS example 4" width="45%">
 </div>
 
+### Responsive menu bar
+
+<div align="center">
+  <img src="screenshots/resp2.png" alt="Responsive menu — full bar" width="45%">
+  <img src="screenshots/resp3.png" alt="Responsive menu — overflow (dots)" width="45%">
+  <img src="screenshots/resp1.png" alt="Responsive menu — hamburger mode" width="45%">
+</div>
+
 ## Projects using this crate
 
 If you want your project to be added there, just ask!
@@ -51,7 +59,9 @@ As a developer who uses this framework to build my own desktop applications, I'm
 
 Not WebAssembly-oriented, but designed to give egui desktop apps professional look and features (custom title bar, menus, system icons, Windows/macOS/Linux themes).
 
-The goal is to provide a solid foundation so you can focus on building your application logic instead of wrestling with platform-specific UI details.
+NB: The main objective is to fully master the title bar and intelligently utilize the available space. This modern and open approach is perfectly suited for creating a visual identity or brand. However, at the moment, it's not as flexible as an application using React and CSS, so some aspects of the crate remain subjective, and there's certainly still much to be done to ensure everyone finds it useful (you're welcome to contribute). The menu system follows a responsive design similar to VS Code: items that fit appear in the bar, the rest go into an overflow dropdown (dots or hamburger), with full keyboard navigation and recursive submenus to any depth.
+
+That being said, the framework is already capable of providing a solid foundation so you can focus on building your application's logic rather than struggling with platform-specific user interface details.
 
 ## ✨ Features
 
@@ -66,8 +76,10 @@ The goal is to provide a solid foundation so you can focus on building your appl
 - **Icon keyboard shortcuts**: Bind keyboard shortcuts to custom icons with tooltip display
 - **Optional titles**: Hide title text while keeping icon and controls
 - **Menu integration**: Add menu items or icons directly in title bar
-- **Advanced menu system**: Multi-level menus with submenus and cascading sidemenus
-- **Keyboard navigation**: Full keyboard support following platform standards
+- **Responsive menu bar**: Items adapt to available width; overflow items move to a "…" (dots) or hamburger dropdown, similar to VS Code; the hamburger icon is available in **static** (3 lines) or **animated** (bars ↔ dots) style
+- **Recursive submenus**: Multi-level menus with submenus and cascading sidemenus to arbitrary depth (state, navigation, and rendering are fully recursive)
+- **Keyboard navigation**: Full keyboard support (Alt / Ctrl+F2, arrows, Enter, Escape) in the bar, overflow overlay, and all submenu levels
+- **Mouse/keyboard sync**: Any mouse action updates keyboard state so the next keypress matches what is on screen
 - **Cross-platform shortcuts**: Comprehensive keyboard shortcut system with global state management
 - **Native control replacement**: All window control buttons (minimize, maximize, close) are replaced with custom egui-drawn buttons for complete visual control
 
@@ -205,10 +217,11 @@ TitleBar::new("My App")
         hover_color: Color32::from_rgb(65, 65, 85),
         close_hover_color: Color32::from_rgb(220, 20, 40),
         close_icon_color: Color32::from_rgb(180, 180, 180),
-        
+
     })
     .show(ctx);
 ```
+
 ```rust
 use egui_desktop::{TitleBar, CustomIcon, KeyboardShortcut};
 
@@ -341,6 +354,8 @@ TitleBar::new("My App")
     .show(ctx);
 ```
 
+The menu bar is **responsive**: when horizontal space is limited, items that do not fit are grouped behind a "…" (dots) indicator or, in very narrow windows, a **hamburger** icon (static three lines or animated bars↔dots). Clicking or focusing the overflow opens a dropdown with the same items; keyboard navigation (arrows, Enter) works the same there. Submenus can nest to **arbitrary depth** (File → Recent Files → folder → item, etc.); both mouse and keyboard stay in sync.
+
 ### Keyboard Navigation & Shortcuts
 
 The framework provides comprehensive keyboard navigation that follows platform standards:
@@ -353,10 +368,10 @@ The framework provides comprehensive keyboard navigation that follows platform s
 #### Navigation Controls
 
 - **Arrow Keys**: Navigate through menu items
-  - **Left/Right**: Navigate between top-level menus
-  - **Up/Down**: Navigate within submenus
-  - **Right**: Open sidemenus (when available)
-  - **Left**: Close sidemenus or go back
+  - **Left/Right**: Navigate between top-level menus (or between last bar item and overflow dots)
+  - **Up/Down**: Navigate within the current menu or within the overflow dropdown
+  - **Right** / **Enter** / **Space**: Open overflow dropdown (when on dots), open submenus, or run action
+  - **Left**: Close current submenu or overflow; on first bar item, no wrap to dots
 
 #### Selection
 
@@ -370,12 +385,12 @@ The framework provides comprehensive keyboard navigation that follows platform s
 
 #### Smart Navigation Logic
 
-The navigation system intelligently handles different contexts:
+The navigation system handles:
 
-1. **Top-level menus**: Left/right navigation between menu categories
-2. **Submenus**: Up/down navigation within menu items
-3. **Sidemenus**: Up/down navigation within cascading menu items
-4. **Context-aware**: Navigation is disabled only when on highlighted items with sidemenus
+1. **Bar + overflow**: When some items are in the bar and some in overflow, Left/Right move between bar items and the dots; Enter/Space on dots opens the overflow dropdown
+2. **Overflow dropdown**: Up/Down move in the list; Enter/Space open a submenu or run the action; after running an action, focus stays on dots so Enter reopens the overlay
+3. **Submenus (any depth)**: Up/Down in the current level, Right/Enter to go deeper, Left to go back; selection and open cascade are fully recursive
+4. **Mouse/keyboard sync**: Clicks (bar, overflow, submenu items, open cascade, click outside) update keyboard state so the next keypress matches the UI
 
 #### Cross-Platform Compatibility
 
@@ -420,24 +435,31 @@ KeyboardShortcut::parse("ctrl+-")             // Ctrl+-
 
 ### Menu Rendering and Interaction
 
+#### Responsive Layout
+
+- **Fitted items**: As many top-level items as fit in the bar are shown; width is computed from labels
+- **Overflow**: Remaining items are in a dropdown opened via "…" (dots) or a hamburger icon in minimal mode (no items fit)
+- **Hamburger style**: In minimal mode, the hamburger can be **Static** (three horizontal lines) or **Animated** (morphs to three dots when open; configurable via `TitleBarOptions::with_hamburger_style`)
+- **Same behavior**: Overflow dropdown supports the same keyboard navigation and submenus as the bar
+
 #### Visual States
 
 - **Normal**: Default appearance
 - **Hovered**: Mouse hover highlight
-- **Keyboard Selected**: Distinct blue highlight for keyboard navigation
+- **Keyboard Selected**: Distinct highlight for keyboard navigation (themeable)
 - **Disabled**: Grayed out appearance
 
 #### Interaction Modes
 
-1. **Mouse Mode**: Hover to open submenus, click to select
-2. **Keyboard Mode**: Arrow keys for navigation, Enter/Space to select
-3. **Mixed Mode**: Both mouse and keyboard work simultaneously
+1. **Mouse**: Click to open submenus or overflow, click to select; any click updates keyboard state
+2. **Keyboard**: Alt / Ctrl+F2 to activate, then arrows and Enter/Space in bar, overflow, and all submenu levels
+3. **Mixed**: Mouse and keyboard can be used interchangeably; state stays in sync
 
 #### Menu Positioning
 
-- **Automatic positioning**: Menus position themselves to stay on screen
-- **Cascading sidemenus**: Automatically align with parent menu items
-- **Platform-aware**: Follows OS conventions for menu placement
+- **Automatic positioning**: Menus and cascades position themselves to stay on screen
+- **Recursive cascades**: Submenus can nest to any depth; each level is positioned relative to its parent
+- **Platform-aware**: Follows OS conventions for menu placement (e.g. title bar height)
 
 ### Multi-Window Applications
 
@@ -494,15 +516,26 @@ TitleBar::new(
         )
 )
 .show(ctx);
+```
 
-// Or use the new unified API
+#### Hamburger Style (minimal mode)
+
+When the window is narrow and no menu items fit, the overflow is shown as a hamburger icon. You can choose a static or animated style:
+
+```rust
+use egui_desktop::{TitleBar, TitleBarOptions, titlebar::HamburgerStyle};
+
 TitleBar::new(
     TitleBarOptions::new()
         .with_title("My App")
-        .with_title_visibility(true, true, false)
+        .with_hamburger_style(HamburgerStyle::Static)   // Three fixed lines (default)
+        // .with_hamburger_style(HamburgerStyle::Animated)  // Bars ↔ dots with transition when open
 )
 .show(ctx);
 ```
+
+- **Static**: Three horizontal lines; simple and lightweight.
+- **Animated**: Icon morphs (bars ↔ three dots) and reacts to hover/open state.
 
 #### Keyboard Selection Colors
 
@@ -534,7 +567,7 @@ cargo install egui-desktop-cli
 
 # Generate and run demo project
 egui-desktop mon-demo-projet
-cd mon-demo-projet
+cd my-demo-projet
 cargo run
 ```
 
@@ -547,39 +580,40 @@ This creates a fully-featured demo with:
 
 ### Built-in Examples
 
-| Example               | Description                                                                               |
-| --------------------- | ----------------------------------------------------------------------------------------- |
-| `basic_app.rs`        | Simple app with default light theme and title bar                                         |
-| `custom_title_bar.rs` | Customized title bar with dark theme and menu items                                       |
-| `multi_platform.rs`   | Cross-platform demo showing OS-specific features                                          |
-| `no_title_app.rs`     | Title bar without title text (macOS: traffic lights only, Windows/Linux: icon + controls) |
-| `multi_window.rs`      | Multi-window application with independent title bars and shared state                        |
-| `animated_theme_icon.rs` | Animated theme icon with sun→moon transitions and keyboard shortcuts                    |
+| Example                   | Description                                                                                          |
+| ------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `basic_app.rs`            | Simple app with default light theme and title bar                                                    |
+| `custom_title_bar.rs`     | Customized title bar with dark theme and menu items                                                  |
+| `multi_platform.rs`       | Cross-platform demo showing OS-specific features                                                     |
+| `no_title_app.rs`         | Title bar without title text (macOS: traffic lights only, Windows/Linux: icon + controls)            |
+| `multi_window.rs`         | Multi-window application with independent title bars and shared state                                |
+| `responsive_menu_demo.rs` | Responsive menu bar with overflow (dots/hamburger), recursive submenus, and full keyboard navigation |
+| `animated_theme_icon.rs`  | Animated theme icon with sun→moon transitions and keyboard shortcuts                                 |
 
 ### Testing Keyboard Navigation
 
-To test the keyboard navigation features:
+To test the keyboard navigation and responsive menu:
 
-1. **Run any example**: `cargo run --example theme_demo`
+1. **Run the responsive demo**: `cargo run --example responsive_menu_demo` (or any example with menus)
 2. **Activate keyboard mode**: Press `Alt` (Windows/Linux) or `Ctrl+F2` (macOS)
-3. **Navigate menus**: Use arrow keys to navigate through menu items
-4. **Open submenus**: Press `Right` arrow on items with submenus
-5. **Select items**: Press `Enter` or `Space` to activate menu items
-6. **Close menus**: Press `Escape` or click outside the menu area
+3. **Navigate the bar**: Left/Right between top-level items and the overflow dots
+4. **Open overflow**: Focus dots and press Enter/Space to open the dropdown
+5. **Navigate submenus**: Up/Down in lists, Right/Enter to open cascades, Left to go back (works to any depth)
+6. **Select items**: Enter or Space to run actions; Escape or click outside to close
 
 ### Keyboard Navigation Features Demonstrated
 
 - **Cross-platform activation**: Alt vs Ctrl+F2 based on OS
-- **Multi-level navigation**: Top-level menus → submenus → sidemenus
-- **Smart context handling**: Navigation disabled only when appropriate
-- **Platform-standard shortcuts**: Enter/Space for selection
-- **Visual feedback**: Distinct highlighting for keyboard vs mouse interaction
+- **Responsive + overflow**: Bar items and dots; full navigation in the overflow dropdown
+- **Recursive depth**: Top-level → submenus → cascades to arbitrary depth
+- **Mouse/keyboard sync**: Clicks update keyboard state; mixed use works seamlessly
+- **Visual feedback**: Distinct highlighting for keyboard selection (themeable)
 
 Run examples with:
 
 ```bash
 cargo run --example basic_app
-cargo run --example theme_demo
+cargo run --example responsive_menu_demo
 cargo run --example custom_title_bar
 ```
 
@@ -613,6 +647,7 @@ Control whether the app title is displayed on each platform:
 - `with_title_visibility(macos, windows, linux)` - Set visibility per platform
 - **Default**: macOS = true, Windows = true, Linux = true
 - Useful for following platform conventions or custom requirements
+- `with_hamburger_style(HamburgerStyle)` - Overflow icon in minimal mode: `Static` (three lines, default) or `Animated` (bars ↔ dots)
 
 ## 🪟 Window Features
 
@@ -644,7 +679,7 @@ Platform-specific dependencies are included automatically:
 
 - **Windows**: `windows` crate for native APIs
 - **macOS**: `cocoa` and `objc` for native APIs
-- **Linux**: `x11`, `wayland-client` for native APIs
+- **Linux**: Not yet implemented.
 
 ## 🔧 Technical Implementation
 
@@ -686,10 +721,10 @@ This global state allows the framework to:
 
 ```toml
 [dependencies]
-egui-desktop = "0.1.0"
-egui_extras = { version = "0.32", features = ["all_loaders"] }
-eframe = "0.32"
-egui = "0.32"
+egui-desktop = "0.2.4"
+egui_extras = { version = "0.33", features = ["all_loaders"] }
+eframe = "0.33"
+egui = "0.33"
 ```
 
 2. Initialize in your app:
@@ -729,13 +764,14 @@ fn main() -> Result<(), eframe::Error> {
 
 6. **Follow platform conventions**: Use appropriate activation keys (Alt for Windows/Linux, Ctrl+F2 for macOS)
 7. **Provide consistent shortcuts**: Use standard shortcuts like Ctrl+Z for undo, Ctrl+S for save
-8. **Test navigation flow**: Ensure smooth keyboard navigation through all menu levels
-9. **Group related items**: Use separators to organize menu items logically
-10. **Handle mixed input**: Design for both mouse and keyboard users
-11. **Provide visual feedback**: Ensure keyboard-selected items are clearly highlighted
-12. **Test edge cases**: Verify behavior when switching between mouse and keyboard input
-13. **Customize selection colors**: Choose keyboard highlight colors that work well with your app's theme
-14. **Consider accessibility**: Ensure sufficient contrast between selection colors and background
+8. **Test navigation flow**: Ensure smooth keyboard navigation through bar, overflow dropdown, and all submenu levels (including deep cascades)
+9. **Test responsive menu**: Resize the window to trigger overflow (dots or hamburger) and verify keyboard navigation in the overlay
+10. **Group related items**: Use separators to organize menu items logically
+11. **Handle mixed input**: Design for both mouse and keyboard users (state stays in sync)
+12. **Provide visual feedback**: Ensure keyboard-selected items are clearly highlighted
+13. **Test edge cases**: Verify behavior when switching between mouse and keyboard input
+14. **Customize selection colors**: Choose keyboard highlight colors that work well with your app's theme
+15. **Consider accessibility**: Ensure sufficient contrast between selection colors and background
 
 ## 🤝 Contributing
 

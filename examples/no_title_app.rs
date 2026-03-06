@@ -1,5 +1,6 @@
 use eframe::egui;
-use egui_desktop::{apply_rounded_corners, render_resize_handles, TitleBar, TitleBarOptions};
+use egui::{CentralPanel, Color32, Context, ViewportBuilder};
+use egui_desktop::{TitleBar, TitleBarOptions, apply_rounded_corners, render_resize_handles};
 use egui_extras::install_image_loaders;
 
 struct MyApp {
@@ -15,15 +16,15 @@ impl Default for MyApp {
 }
 
 impl eframe::App for MyApp {
-    fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+    fn update(&mut self, ctx: &Context, frame: &mut eframe::Frame) {
         // Apply native rounded corners (only called once)
         apply_rounded_corners(frame);
 
         // Title bar WITHOUT title text (only icon and controls)
         TitleBar::new(
             TitleBarOptions::new()
-                .with_background_color(egui::Color32::from_rgb(40, 40, 40)) // Dark background
-                .with_hover_color(egui::Color32::from_rgb(60, 60, 60)) // Dark gray hover
+                .with_background_color(Color32::from_rgb(40, 40, 40)) // Dark background
+                .with_hover_color(Color32::from_rgb(60, 60, 60)) // Dark gray hover
                 .with_app_icon(
                     b"<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"24\" height=\"24\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#4A90E2\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"2\" ry=\"2\" fill=\"#E8F4FD\"/><rect x=\"3\" y=\"3\" width=\"18\" height=\"6\" rx=\"2\" ry=\"2\" fill=\"#4A90E2\"/><circle cx=\"6\" cy=\"6\" r=\"1\" fill=\"#FF5F57\"/><circle cx=\"9\" cy=\"6\" r=\"1\" fill=\"#FFBD2E\"/><circle cx=\"12\" cy=\"6\" r=\"1\" fill=\"#28CA42\"/><rect x=\"6\" y=\"12\" width=\"3\" height=\"3\" fill=\"#4A90E2\"/><rect x=\"12\" y=\"12\" width=\"6\" height=\"3\" fill=\"#4A90E2\"/></svg>",
                     "window-no-title.svg"
@@ -35,7 +36,7 @@ impl eframe::App for MyApp {
         render_resize_handles(ctx);
 
         // Your app content here
-        egui::CentralPanel::default().show(ctx, |ui| {
+        CentralPanel::default().show(ctx, |ui| {
             ui.heading("Title Bar Without Title Text!");
             ui.separator();
 
@@ -78,7 +79,7 @@ impl eframe::App for MyApp {
 
 fn main() -> Result<(), eframe::Error> {
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default()
+        viewport: ViewportBuilder::default()
             .with_inner_size([800.0, 600.0])
             .with_min_inner_size([800.0, 600.0])
             .with_decorations(false),

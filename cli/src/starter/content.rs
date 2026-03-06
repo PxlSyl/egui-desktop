@@ -1,7 +1,8 @@
 use crate::app::CustomThemeDemoApp;
+use egui::{ScrollArea, Ui, Slider, ProgressBar, Color32};
 
-pub fn render_main_content(app: &mut CustomThemeDemoApp, ui: &mut egui::Ui) {
-    egui::ScrollArea::vertical()
+pub fn render_main_content(app: &mut CustomThemeDemoApp, ui: &mut Ui) {
+    ScrollArea::vertical()
         .max_width(ui.available_width())
         .show(ui, |ui| {
             ui.colored_label(app.get_text_color(ui), "🎨 Egui Desktop Starter");
@@ -270,20 +271,20 @@ pub fn render_main_content(app: &mut CustomThemeDemoApp, ui: &mut egui::Ui) {
                         
                         ui.label("Slider:");
                         let mut value = 0.5;
-                        ui.add(egui::Slider::new(&mut value, 0.0..=1.0));
+                        ui.add(Slider::new(&mut value, 0.0..=1.0));
                     });
 
                     ui.add_space(8.0);
 
                     ui.label("Progress bar:");
                     let progress = 0.7;
-                    ui.add(egui::ProgressBar::new(progress).text("70% complete"));
+                    ui.add(ProgressBar::new(progress).text("70% complete"));
 
                     ui.add_space(8.0);
 
                     ui.horizontal(|ui| {
                         ui.label("Color picker:");
-                        let mut color = egui::Color32::from_rgb(100, 150, 200);
+                        let mut color = Color32::from_rgb(100, 150, 200);
                         ui.color_edit_button_srgba(&mut color);
                     });
                 });

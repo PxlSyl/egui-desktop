@@ -1,14 +1,30 @@
 use std::borrow::Cow;
 
-use egui::load::Bytes;
 use egui::{
-    Color32, CornerRadius, CursorIcon, Id, Image, ImageSource, Pos2, Rect, Sense, Ui, Vec2,
+    Color32, Context, CornerRadius, CursorIcon, Id, Image, ImageSource, Painter, Pos2, Rect, Sense,
+    Ui, Vec2, load::Bytes,
 };
 
-use crate::titlebar::CustomIconButton;
-use crate::{CustomIcon, TitleBar, TitleBarOptions};
+use crate::{
+    CustomIcon, KeyboardShortcut, TitleBar, TitleBarOptions,
+    menu::core::states::globals::MENU_STATE,
+    titlebar::{AnimationCtx, CustomIconButton, IconAnimationState},
+};
 
 impl TitleBar {
+    /// Close all menus and clear all states
+    pub fn close_all_menus(&mut self) {
+        // Use recursive system to close all menus
+        self.reset_all_menu_states();
+        self.submenu_just_opened_frame = false;
+        self.hamburger_menu_open = false;
+
+        // Clear all cascading submenu states
+        if let Ok(mut state) = MENU_STATE.lock() {
+            state.clear();
+        }
+    }
+
     /// Convenience constructor for a title bar with a title
     ///
     /// This is a shorthand for creating a title bar with just a title.
@@ -199,7 +215,7 @@ impl TitleBar {
         icon: CustomIcon,
         callback: Option<Box<dyn Fn() + Send + Sync>>,
         tooltip: Option<String>,
-        shortcut: Option<crate::KeyboardShortcut>,
+        shortcut: Option<KeyboardShortcut>,
     ) -> Self {
         self.custom_icons.push(CustomIconButton {
             icon,
@@ -220,18 +236,11 @@ impl TitleBar {
     pub fn add_animated_icon(
         mut self,
         draw: Box<
-            dyn Fn(
-                    &egui::Painter,
-                    egui::Rect,
-                    egui::Color32,
-                    &mut crate::titlebar::IconAnimationState,
-                    crate::titlebar::AnimationCtx,
-                ) + Send
-                + Sync,
+            dyn Fn(&Painter, Rect, Color32, &mut IconAnimationState, AnimationCtx) + Send + Sync,
         >,
         callback: Option<Box<dyn Fn() + Send + Sync>>,
         tooltip: Option<String>,
-        shortcut: Option<crate::KeyboardShortcut>,
+        shortcut: Option<KeyboardShortcut>,
     ) -> Self {
         self = self.add_icon(CustomIcon::Animated(draw), callback, tooltip, shortcut);
         self
@@ -241,18 +250,11 @@ impl TitleBar {
     pub fn add_animated_ui_icon(
         mut self,
         draw: Box<
-            dyn Fn(
-                    &mut egui::Ui,
-                    egui::Rect,
-                    egui::Color32,
-                    &mut crate::titlebar::IconAnimationState,
-                    crate::titlebar::AnimationCtx,
-                ) + Send
-                + Sync,
+            dyn Fn(&mut Ui, Rect, Color32, &mut IconAnimationState, AnimationCtx) + Send + Sync,
         >,
         callback: Option<Box<dyn Fn() + Send + Sync>>,
         tooltip: Option<String>,
-        shortcut: Option<crate::KeyboardShortcut>,
+        shortcut: Option<KeyboardShortcut>,
     ) -> Self {
         self = self.add_icon(CustomIcon::AnimatedUi(draw), callback, tooltip, shortcut);
         self
@@ -260,7 +262,7 @@ impl TitleBar {
 
     /// Check if any custom icon shortcut was pressed and execute the callback
     /// Call this in your app's update loop to handle icon shortcuts
-    pub fn handle_icon_shortcuts(&self, ctx: &egui::Context) {
+    pub fn handle_icon_shortcuts(&self, ctx: &Context) {
         for icon_button in &self.custom_icons {
             if let Some(shortcut) = &icon_button.shortcut {
                 if shortcut.just_pressed(ctx) {
@@ -397,7 +399,7 @@ impl TitleBar {
                     let target_press = if pressed { 1.0 } else { 0.0 };
                     state.press_t += (target_press - state.press_t) * (1.0 - (-12.0 * dt).exp());
 
-                    let ctx = crate::titlebar::AnimationCtx {
+                    let ctx = AnimationCtx {
                         time: now,
                         delta_seconds: dt,
                         hovered,
@@ -426,7 +428,7 @@ impl TitleBar {
                     let target_press = if pressed { 1.0 } else { 0.0 };
                     state.press_t += (target_press - state.press_t) * (1.0 - (-12.0 * dt).exp());
 
-                    let ctx = crate::titlebar::AnimationCtx {
+                    let ctx = AnimationCtx {
                         time: now,
                         delta_seconds: dt,
                         hovered,

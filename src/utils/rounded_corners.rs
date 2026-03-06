@@ -1,5 +1,5 @@
 use eframe::Frame;
-use egui::Context;
+use egui::{Context, Id, ViewportId};
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
 use std::{
     collections::HashSet,
@@ -10,7 +10,7 @@ use std::{
 use crate::utils::os::apply_native_rounded_corners;
 
 // Track which viewports have had rounded corners applied
-static APPLIED_VIEWPORTS: LazyLock<Mutex<HashSet<egui::ViewportId>>> =
+static APPLIED_VIEWPORTS: LazyLock<Mutex<HashSet<ViewportId>>> =
     LazyLock::new(|| Mutex::new(HashSet::new()));
 
 /// Applies native rounded corners to the window if supported on the current platform.
@@ -38,11 +38,7 @@ pub fn apply_rounded_corners(frame: &Frame) {
 /// * `ctx` - The egui context
 /// * `frame` - The Frame containing the window handle to store
 /// * `viewport_id` - The ID of the viewport this handle is for
-pub fn store_window_handle_for_viewport(
-    ctx: &Context,
-    frame: &Frame,
-    viewport_id: egui::ViewportId,
-) {
+pub fn store_window_handle_for_viewport(ctx: &Context, frame: &Frame, viewport_id: ViewportId) {
     if let Ok(window_handle) = frame.window_handle() {
         let raw_handle: RawWindowHandle = window_handle.into();
 
@@ -56,7 +52,7 @@ pub fn store_window_handle_for_viewport(
         };
 
         if let Some(native_ptr) = ptr {
-            let id = egui::Id::new(("rounded_corners_ptr", viewport_id));
+            let id = Id::new(("rounded_corners_ptr", viewport_id));
             // Store as usize (which is Send + Sync) instead of raw pointer
             let ptr_as_usize = native_ptr as usize;
             ctx.data_mut(|data| {
@@ -96,7 +92,7 @@ pub fn apply_rounded_corners_to_viewport(ctx: &Context) {
         let mut applied = APPLIED_VIEWPORTS.lock().unwrap();
         applied.remove(&viewport_id);
         // Also clear the stored handle
-        let id = egui::Id::new(("rounded_corners_ptr", viewport_id));
+        let id = Id::new(("rounded_corners_ptr", viewport_id));
         ctx.data_mut(|data| {
             data.remove::<usize>(id);
         });
@@ -108,7 +104,7 @@ pub fn apply_rounded_corners_to_viewport(ctx: &Context) {
     // (e.g., if the window was closed and reopened, it's a new native window)
 
     // Try method 1: Get stored window handle pointer from the context
-    let id = egui::Id::new(("rounded_corners_ptr", viewport_id));
+    let id = Id::new(("rounded_corners_ptr", viewport_id));
     let mut handle_found = false;
 
     if let Some(ptr_as_usize) = ctx.data(|data| data.get_temp::<usize>(id)) {

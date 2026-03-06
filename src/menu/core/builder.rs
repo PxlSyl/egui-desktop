@@ -20,7 +20,9 @@ impl TitleBar {
         label: &str,
         callback: Option<Box<dyn Fn() + Send + Sync>>,
     ) -> Self {
+        let index = self.menu_items.len();
         self.menu_items.push((label.to_string(), callback));
+        self.menu_order.push((false, index)); // false = simple menu
         self
     }
     /// Add a menu item with submenu support to the title bar
@@ -50,7 +52,9 @@ impl TitleBar {
     /// title_bar.add_menu_with_submenu(file_menu);
     /// ```
     pub fn add_menu_with_submenu(mut self, menu_item: MenuItem) -> Self {
+        let index = self.menu_items_with_submenus.len();
         self.menu_items_with_submenus.push(menu_item);
+        self.menu_order.push((true, index)); // true = submenu
         self
     }
 }

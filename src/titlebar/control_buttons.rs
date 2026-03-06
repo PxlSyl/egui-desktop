@@ -1,5 +1,6 @@
 use egui::{
-    Color32, Painter, Pos2, Rect, Response, Sense, Shape, Stroke, StrokeKind, Ui, Vec2, vec2,
+    Color32, CursorIcon, Painter, PointerButton, Pos2, Rect, Response, Sense, Shape, Stroke,
+    StrokeKind, Ui, Vec2, vec2,
 };
 
 use crate::{TitleBar, titlebar::render_bar::title_bar_height};
@@ -26,7 +27,7 @@ impl TitleBar {
     /// * `painter` - The egui painter to draw with
     /// * `rect` - The bounding rectangle for the icon
     /// * `color` - The color of the icon lines
-    fn draw_close_icon(&self, painter: &egui::Painter, rect: Rect, color: Color32) {
+    fn draw_close_icon(&self, painter: &Painter, rect: Rect, color: Color32) {
         let center = rect.center();
         let size = rect.width().min(rect.height()) * 0.6;
         let half_size = size / 2.0;
@@ -56,7 +57,7 @@ impl TitleBar {
     /// * `painter` - The egui painter to draw with
     /// * `rect` - The bounding rectangle for the icon
     /// * `color` - The color of the icon lines
-    fn draw_maximize_icon(&self, painter: &Painter, rect: egui::Rect, color: Color32) {
+    fn draw_maximize_icon(&self, painter: &Painter, rect: Rect, color: Color32) {
         let center = rect.center();
         let size = rect.width().min(rect.height()) * 0.75;
         let stroke = Stroke::new(1.5, color);
@@ -153,7 +154,7 @@ impl TitleBar {
 
         if response.hovered() {
             ui.painter().rect_filled(rect, 2.0, hover_color);
-            ui.ctx().set_cursor_icon(egui::CursorIcon::PointingHand);
+            ui.ctx().set_cursor_icon(CursorIcon::PointingHand);
         }
 
         let icon_rect = Rect::from_center_size(rect.center(), Vec2::new(icon_size, icon_size));
@@ -190,7 +191,7 @@ impl TitleBar {
     /// * `painter` - The egui painter used for rendering
     /// * `rect` - The bounding rectangle of the icon
     /// * `color` - The color of the icon strokes
-    fn draw_mac_close_icon(&self, painter: &egui::Painter, rect: Rect, color: Color32) {
+    fn draw_mac_close_icon(&self, painter: &Painter, rect: Rect, color: Color32) {
         let stroke = Stroke::new(1.5, color);
         painter.line_segment([rect.left_top(), rect.right_bottom()], stroke);
         painter.line_segment([rect.right_top(), rect.left_bottom()], stroke);
@@ -204,7 +205,7 @@ impl TitleBar {
     /// * `painter` - The egui painter used for rendering
     /// * `rect` - The bounding rectangle of the icon
     /// * `color` - The color of the icon stroke
-    fn draw_mac_miniaturize_icon(&self, painter: &Painter, rect: egui::Rect, color: Color32) {
+    fn draw_mac_miniaturize_icon(&self, painter: &Painter, rect: Rect, color: Color32) {
         let center = rect.center();
         let size = rect.width();
         let half_size = size / 2.0;
@@ -302,7 +303,7 @@ impl TitleBar {
         icon_type: Option<WindowControlIcon>,
         icon_color: Color32,
         size: f32,
-    ) -> egui::Response {
+    ) -> Response {
         let button_size = Vec2::new(size, size);
         let (button_id, button_rect) = ui.allocate_space(button_size);
 
@@ -312,7 +313,7 @@ impl TitleBar {
         let response = ui.interact(centered_rect, button_id, Sense::click());
         let primary_mouse_down = ui
             .ctx()
-            .input(|i| i.pointer.button_down(egui::PointerButton::Primary));
+            .input(|i| i.pointer.button_down(PointerButton::Primary));
 
         let darken = response.hovered() && primary_mouse_down;
         let bkg = if darken {

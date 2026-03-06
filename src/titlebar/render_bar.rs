@@ -1,6 +1,6 @@
 use egui::{
     Align, Align2, Color32, Context, FontId, Frame, Image, Layout, Margin, PointerButton, Pos2,
-    Rect, Rgba, Sense, TextStyle, TopBottomPanel, Vec2, ViewportCommand,
+    Rect, Rgba, Sense, TextStyle, TopBottomPanel, Vec2, ViewportCommand, vec2,
 };
 
 use crate::{TitleBar, titlebar::control_buttons::WindowControlIcon};
@@ -114,9 +114,9 @@ impl TitleBar {
                         let spacing_width = spacings_count * spacing_size;
                         let controls_width = buttons_width + spacing_width;
                         let controls_height = button_size;
-                        let rect = egui::Rect::from_min_size(
+                        let rect = Rect::from_min_size(
                             controls_start,
-                            egui::vec2(controls_width, controls_height),
+                            vec2(controls_width, controls_height),
                         );
 
                         // Check if traffic lights controls are hovered.
@@ -256,7 +256,7 @@ impl TitleBar {
                 }
             });
 
-        self.render_open_submenu(ctx);
+        self.render_submenu(ctx);
     }
 
     /// Render a platform-generic title bar (Windows/Linux-style).
@@ -403,6 +403,6 @@ impl TitleBar {
                 });
             });
 
-        self.render_open_submenu(ctx);
+        self.render_submenu(ctx);
     }
 }
