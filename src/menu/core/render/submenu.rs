@@ -30,6 +30,7 @@ impl TitleBar {
                     let submenu_hover_color = self.submenu_hover_color;
                     let submenu_shortcut_color = self.submenu_shortcut_color;
                     let submenu_border_color = self.submenu_border_color;
+                    let submenu_disabled_color = self.submenu_disabled_color;
                     let submenu_keyboard_selection_color = self.submenu_keyboard_selection_color;
                     let keyboard_navigation_active = self.keyboard_navigation_active;
                     // Get selection from recursive system
@@ -236,6 +237,7 @@ impl TitleBar {
                                     submenu_hover_color,
                                     submenu_shortcut_color,
                                     submenu_border_color,
+                                    submenu_disabled_color,
                                     submenu_keyboard_selection_color,
                                     keyboard_navigation_active,
                                     Some(current_selection),
@@ -271,7 +273,8 @@ impl TitleBar {
                         let menu_info = menus_to_render[i].clone();
                         let depth = menu_info.path_prefix.len(); // 1 = first cascade, 2 = second, etc.
                         if keyboard_navigation_active
-                            && self.render_state.get_open_menu_at_depth(depth) != Some(menu_info.parent_index)
+                            && self.render_state.get_open_menu_at_depth(depth)
+                                != Some(menu_info.parent_index)
                         {
                             i += 1;
                             continue;
@@ -310,6 +313,7 @@ impl TitleBar {
                                         submenu_hover_color,
                                         submenu_shortcut_color,
                                         submenu_border_color,
+                                        submenu_disabled_color,
                                         submenu_keyboard_selection_color,
                                         keyboard_navigation_active,
                                         child_selection_for_overlay,

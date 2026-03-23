@@ -68,6 +68,8 @@ pub struct TitleBarOptions {
     pub icon_spacing: Option<f32>,
     /// Hamburger menu animation style.
     pub hamburger_style: HamburgerStyle,
+    /// Show separator line below the title bar (default: true).
+    pub show_bottom_border: Option<bool>,
 }
 
 impl Default for TitleBarOptions {
@@ -97,6 +99,7 @@ impl Default for TitleBarOptions {
             show_minimize_button: None,
             icon_spacing: None,
             hamburger_style: HamburgerStyle::default(),
+            show_bottom_border: None,
         }
     }
 }
@@ -247,6 +250,13 @@ impl TitleBarOptions {
     /// Set hamburger menu animation style.
     pub fn with_hamburger_style(mut self, style: HamburgerStyle) -> Self {
         self.hamburger_style = style;
+        self
+    }
+
+    /// Show or hide the separator line below the title bar.
+    /// When false, the title bar visually merges with content below (e.g. tabs).
+    pub fn with_show_bottom_border(mut self, show: bool) -> Self {
+        self.show_bottom_border = Some(show);
         self
     }
 }

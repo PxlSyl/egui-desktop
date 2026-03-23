@@ -66,6 +66,7 @@ impl TitleBar {
         submenu_hover_color: Color32,
         submenu_shortcut_color: Color32,
         submenu_border_color: Color32,
+        submenu_disabled_color: Color32,
         submenu_keyboard_selection_color: Color32,
         keyboard_navigation_active: bool,
         selected_submenu_index: Option<usize>,
@@ -196,7 +197,7 @@ impl TitleBar {
                     } else if subitem.enabled {
                         submenu_text_color
                     } else {
-                        Color32::from_rgb(150, 150, 150)
+                        submenu_disabled_color
                     };
 
                     ui.painter().text(

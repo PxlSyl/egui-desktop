@@ -217,7 +217,22 @@ TitleBar::new("My App")
         hover_color: Color32::from_rgb(65, 65, 85),
         close_hover_color: Color32::from_rgb(220, 20, 40),
         close_icon_color: Color32::from_rgb(180, 180, 180),
-
+        maximize_icon_color: Color32::from_rgb(180, 180, 180),
+        restore_icon_color: Color32::from_rgb(180, 180, 180),
+        minimize_icon_color: Color32::from_rgb(180, 180, 180),
+        title_color: Color32::from_rgb(220, 220, 220),
+        menu_text_color: Color32::from_rgb(220, 220, 220),
+        menu_text_size: 14.0,
+        menu_hover_color: Color32::from_rgb(80, 80, 100),
+        keyboard_selection_color: Color32::from_rgb(0, 120, 215),
+        submenu_background_color: Color32::from_rgb(50, 50, 70),
+        submenu_text_color: Color32::from_rgb(220, 220, 220),
+        submenu_text_size: 14.0,
+        submenu_hover_color: Color32::from_rgb(80, 80, 100),
+        submenu_disabled_color: Color32::from_rgb(120, 120, 120),
+        submenu_shortcut_color: Color32::from_rgb(150, 150, 150),
+        submenu_border_color: Color32::from_rgb(200, 200, 200),
+        submenu_keyboard_selection_color: Color32::from_rgb(0, 120, 215),
     })
     .show(ctx);
 ```
@@ -554,6 +569,61 @@ TitleBar::new(
 
 - **Light theme**: Windows blue (`rgb(0, 120, 215)`) - Universal blue that works everywhere
 - **Dark theme**: Dodger blue (`rgb(30, 144, 255)`) - Brighter blue for dark backgrounds
+
+#### Bottom Border Control
+
+You can control the visibility of the title bar's bottom border for seamless UI integration:
+
+```rust
+use egui_desktop::{TitleBar, TitleBarOptions};
+
+TitleBar::new(
+    TitleBarOptions::new()
+        .with_title("My App")
+        .with_show_bottom_border(false)  // Hide bottom border for seamless integration
+)
+.show(ctx);
+```
+
+This is particularly useful when you want the title bar to blend seamlessly with your main content area, creating a unified visual experience without the horizontal separator line.
+
+#### Conditional Menu Item Disabling
+
+You can dynamically disable menu items based on application state:
+
+```rust
+use egui_desktop::{TitleBar, TitleBarOptions, menu::SubMenuItem};
+
+let mut title_bar = TitleBar::new(TitleBarOptions::new().with_title("My App"));
+
+// Add menu items with conditional disabling
+title_bar.add_menu(
+    MenuItem::new("File")
+        .add_subitem(SubMenuItem::new("New")
+            .with_callback(Box::new(|| println!("New file"))))
+        .add_subitem(SubMenuItem::new("Save")
+            .with_callback(Box::new(|| println!("Save file"))))
+        .add_subitem(SubMenuItem::new("Export")
+            .with_callback(Box::new(|| println!("Export file")))
+            .disabled_if(!has_unsaved_changes())) // Disable if no unsaved changes
+);
+
+title_bar.show(ctx);
+```
+
+**Important**: When using conditional disabling, you'll need to redraw the title bar when the condition changes to ensure the visual state updates properly:
+
+```rust
+// In your app's update loop
+if some_condition_changed {
+    // Request title bar redraw to update disabled states
+    ctx.request_repaint();
+}
+```
+
+**Performance tip**: For optimal performance, consider recreating the title bar each frame with current conditions (like in many production apps), so `request_repaint()` is only needed for specific state changes rather than every condition update.
+
+The disabled text color can be customized through the theme system (see Theming section).
 
 ## 📋 Examples
 

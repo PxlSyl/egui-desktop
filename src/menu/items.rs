@@ -80,6 +80,12 @@ impl SubMenuItem {
         self
     }
 
+    /// Disable this item conditionally (non-interactive when condition is true).
+    pub fn disabled_if(mut self, condition: bool) -> Self {
+        self.enabled = !condition;
+        self
+    }
+
     /// Draw a separator line after this item.
     pub fn with_separator(mut self) -> Self {
         self.separator_after = true;

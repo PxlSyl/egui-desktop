@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.5] - 2026-03-23
+
+### Added
+
+- **Conditional menu item disabling**: New `SubMenuItem::disabled_if(condition)` method for dynamic menu state management
+- **Configurable disabled text color**: `submenu_disabled_color` field added to `TitleBarTheme` for customizable disabled menu item appearance
+- **Theme-based disabled colors**: Built-in light (rgb 150,150,150) and dark (rgb 120,120,120) themes include appropriate disabled text colors
+- **Bottom border removal API**: New `TitleBarOptions::with_show_bottom_border(show)` method to control title bar bottom border visibility for seamless UI integration
+
+### Changed
+
+- **Menu rendering**: Disabled menu items now use theme-configurable colors instead of hardcoded gray
+- **API consistency**: `disabled_if()` complements existing `disabled()` method for conditional state management
+
+### Fixed
+
+- **Theme API completeness**: All theme application methods now properly apply `submenu_disabled_color` and other submenu fields
+- **Missing submenu fields**: Fixed `with_theme()`, `sync_with_egui_theme()`, and `sync_with_system_theme()` methods to include all submenu colors
+- **API parameter consistency**: Updated all `*_with_overrides()` methods to include `submenu_disabled_color` parameter (18 total parameters)
+- **Documentation examples**: Corrected all inline examples to use proper 18-parameter tuples with individual comments
+- **Theme synchronization**: Fixed theme sync methods to properly transfer all theme fields including disabled colors
+
 ## [0.2.4] - 2026-03-05
 
 ### Added

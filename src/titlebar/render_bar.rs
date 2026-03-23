@@ -62,6 +62,7 @@ impl TitleBar {
 
         TopBottomPanel::top(self.id)
             .exact_height(28.0)
+            .show_separator_line(self.show_bottom_border)
             .frame(
                 Frame::new()
                     .fill(self.background_color)
@@ -268,6 +269,7 @@ impl TitleBar {
 
         TopBottomPanel::top(self.id)
             .exact_height(32.0)
+            .show_separator_line(self.show_bottom_border)
             .frame(
                 Frame::new()
                     .fill(self.background_color)

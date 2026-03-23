@@ -152,6 +152,7 @@ impl TitleBarTheme {
         submenu_background_color: Option<Color32>,
         submenu_text_color: Option<Color32>,
         submenu_hover_color: Option<Color32>,
+        submenu_disabled_color: Option<Color32>,
         submenu_shortcut_color: Option<Color32>,
         submenu_keyboard_selection_color: Option<Color32>,
     ) -> Self {
@@ -175,7 +176,8 @@ impl TitleBarTheme {
             submenu_text_color: submenu_text_color.unwrap_or(default.submenu_text_color),
             submenu_text_size: default.submenu_text_size,
             submenu_hover_color: submenu_hover_color.unwrap_or(default.submenu_hover_color),
-            submenu_disabled_color: default.submenu_disabled_color,
+            submenu_disabled_color: submenu_disabled_color
+                .unwrap_or(default.submenu_disabled_color),
             submenu_shortcut_color: submenu_shortcut_color
                 .unwrap_or(default.submenu_shortcut_color),
             submenu_border_color: default.submenu_border_color,
@@ -201,6 +203,7 @@ impl TitleBarTheme {
         submenu_background_color: Option<Color32>,
         submenu_text_color: Option<Color32>,
         submenu_hover_color: Option<Color32>,
+        submenu_disabled_color: Option<Color32>,
         submenu_shortcut_color: Option<Color32>,
         submenu_keyboard_selection_color: Option<Color32>,
     ) -> Self {
@@ -224,7 +227,8 @@ impl TitleBarTheme {
             submenu_text_color: submenu_text_color.unwrap_or(default.submenu_text_color),
             submenu_text_size: default.submenu_text_size,
             submenu_hover_color: submenu_hover_color.unwrap_or(default.submenu_hover_color),
-            submenu_disabled_color: default.submenu_disabled_color,
+            submenu_disabled_color: submenu_disabled_color
+                .unwrap_or(default.submenu_disabled_color),
             submenu_shortcut_color: submenu_shortcut_color
                 .unwrap_or(default.submenu_shortcut_color),
             submenu_border_color: default.submenu_border_color,

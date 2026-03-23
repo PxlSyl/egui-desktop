@@ -1,7 +1,7 @@
 use egui::{Color32, Context};
 
-use crate::theme::{detect_system_dark_mode, ThemeError, ThemeMode, ThemeProvider, TitleBarTheme};
 use crate::TitleBar;
+use crate::theme::{ThemeError, ThemeMode, ThemeProvider, TitleBarTheme, detect_system_dark_mode};
 
 impl TitleBar {
     /// Attach a ThemeProvider to this TitleBar
@@ -76,11 +76,12 @@ impl TitleBar {
             Option<Color32>, // menu_text_color
             Option<f32>,     // menu_text_size
             Option<Color32>, // menu_hover_color
+            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_background_color
             Option<Color32>, // submenu_text_color
             Option<Color32>, // submenu_hover_color
+            Option<Color32>, // submenu_disabled_color
             Option<Color32>, // submenu_shortcut_color
-            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_keyboard_selection_color
         ),
     ) {
@@ -103,6 +104,7 @@ impl TitleBar {
             overrides.14,
             overrides.15,
             overrides.16,
+            overrides.17,
         );
         self.apply_theme(theme);
     }
@@ -122,11 +124,12 @@ impl TitleBar {
             Option<Color32>, // menu_text_color
             Option<f32>,     // menu_text_size
             Option<Color32>, // menu_hover_color
+            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_background_color
             Option<Color32>, // submenu_text_color
             Option<Color32>, // submenu_hover_color
+            Option<Color32>, // submenu_disabled_color
             Option<Color32>, // submenu_shortcut_color
-            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_keyboard_selection_color
         ),
     ) {
@@ -149,6 +152,7 @@ impl TitleBar {
             overrides.14,
             overrides.15,
             overrides.16,
+            overrides.17,
         );
         self.apply_theme(theme);
     }
@@ -175,6 +179,15 @@ impl TitleBar {
     ///     menu_text_color: Color32::from_rgb(200, 200, 200),
     ///     menu_text_size: 14.0,
     ///     menu_hover_color: Color32::from_rgb(60, 60, 60),
+    ///     keyboard_selection_color: Color32::from_rgb(0, 120, 215),
+    ///     submenu_background_color: Color32::WHITE,
+    ///     submenu_text_color: Color32::from_rgb(50, 50, 50),
+    ///     submenu_text_size: 11.0,
+    ///     submenu_hover_color: Color32::from_rgb(240, 240, 240),
+    ///     submenu_disabled_color: Color32::from_rgb(150, 150, 150),
+    ///     submenu_shortcut_color: Color32::from_rgb(100, 100, 100),
+    ///     submenu_border_color: Color32::from_rgb(200, 200, 200),
+    ///     submenu_keyboard_selection_color: Color32::from_rgb(0, 120, 215),
     /// };
     /// title_bar.with_theme(custom_theme)
     /// ```
@@ -190,6 +203,15 @@ impl TitleBar {
         self.menu_text_color = theme.menu_text_color;
         self.menu_text_size = theme.menu_text_size;
         self.menu_hover_color = theme.menu_hover_color;
+        self.keyboard_selection_color = theme.keyboard_selection_color;
+        self.submenu_background_color = theme.submenu_background_color;
+        self.submenu_text_color = theme.submenu_text_color;
+        self.submenu_text_size = theme.submenu_text_size;
+        self.submenu_hover_color = theme.submenu_hover_color;
+        self.submenu_disabled_color = theme.submenu_disabled_color;
+        self.submenu_shortcut_color = theme.submenu_shortcut_color;
+        self.submenu_border_color = theme.submenu_border_color;
+        self.submenu_keyboard_selection_color = theme.submenu_keyboard_selection_color;
         self
     }
 
@@ -209,7 +231,20 @@ impl TitleBar {
     ///     None, // Default hover color
     ///     None, // Default close hover color
     ///     Some(Color32::from_rgb(120, 120, 120)), // Custom close icon color
-    ///     None, None, None, None, None, None, None, // Default values
+    ///     None, // Default maximize icon color
+    ///     None, // Default restore icon color
+    ///     None, // Default minimize icon color
+    ///     None, // Default title color
+    ///     None, // Default menu text color
+    ///     None, // Default menu text size
+    ///     None, // Default menu hover color
+    ///     None, // Default keyboard selection color
+    ///     None, // Default submenu background color
+    ///     None, // Default submenu text color
+    ///     None, // Default submenu hover color
+    ///     None, // Default submenu disabled color
+    ///     None, // Default submenu shortcut color
+    ///     None, // Default submenu keyboard selection color
     /// ))
     /// ```
     pub fn with_custom_light_theme(
@@ -226,11 +261,12 @@ impl TitleBar {
             Option<Color32>, // menu_text_color
             Option<f32>,     // menu_text_size
             Option<Color32>, // menu_hover_color
+            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_background_color
             Option<Color32>, // submenu_text_color
             Option<Color32>, // submenu_hover_color
+            Option<Color32>, // submenu_disabled_color
             Option<Color32>, // submenu_shortcut_color
-            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_keyboard_selection_color
         ),
     ) -> Self {
@@ -252,6 +288,7 @@ impl TitleBar {
             overrides.14,
             overrides.15,
             overrides.16,
+            overrides.17,
         );
         self.with_theme(theme)
     }
@@ -272,7 +309,20 @@ impl TitleBar {
     ///     None, // Default hover color
     ///     None, // Default close hover color
     ///     Some(Color32::from_rgb(220, 220, 220)), // Custom close icon color
-    ///     None, None, None, None, None, None, None, // Default values
+    ///     None, // Default maximize icon color
+    ///     None, // Default restore icon color
+    ///     None, // Default minimize icon color
+    ///     None, // Default title color
+    ///     None, // Default menu text color
+    ///     None, // Default menu text size
+    ///     None, // Default menu hover color
+    ///     None, // Default keyboard selection color
+    ///     None, // Default submenu background color
+    ///     None, // Default submenu text color
+    ///     None, // Default submenu hover color
+    ///     None, // Default submenu disabled color
+    ///     None, // Default submenu shortcut color
+    ///     None, // Default submenu keyboard selection color
     /// ))
     /// ```
     pub fn with_custom_dark_theme(
@@ -289,11 +339,12 @@ impl TitleBar {
             Option<Color32>, // menu_text_color
             Option<f32>,     // menu_text_size
             Option<Color32>, // menu_hover_color
+            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_background_color
             Option<Color32>, // submenu_text_color
             Option<Color32>, // submenu_hover_color
+            Option<Color32>, // submenu_disabled_color
             Option<Color32>, // submenu_shortcut_color
-            Option<Color32>, // keyboard_selection_color
             Option<Color32>, // submenu_keyboard_selection_color
         ),
     ) -> Self {
@@ -315,6 +366,7 @@ impl TitleBar {
             overrides.14,
             overrides.15,
             overrides.16,
+            overrides.17,
         );
         self.with_theme(theme)
     }
@@ -418,7 +470,17 @@ impl TitleBar {
             self.minimize_icon_color = theme.minimize_icon_color;
             self.title_color = theme.title_color;
             self.menu_text_color = theme.menu_text_color;
+            self.menu_text_size = theme.menu_text_size;
             self.menu_hover_color = theme.menu_hover_color;
+            self.keyboard_selection_color = theme.keyboard_selection_color;
+            self.submenu_background_color = theme.submenu_background_color;
+            self.submenu_text_color = theme.submenu_text_color;
+            self.submenu_text_size = theme.submenu_text_size;
+            self.submenu_hover_color = theme.submenu_hover_color;
+            self.submenu_disabled_color = theme.submenu_disabled_color;
+            self.submenu_shortcut_color = theme.submenu_shortcut_color;
+            self.submenu_border_color = theme.submenu_border_color;
+            self.submenu_keyboard_selection_color = theme.submenu_keyboard_selection_color;
         }
     }
 
@@ -454,7 +516,17 @@ impl TitleBar {
             self.minimize_icon_color = theme.minimize_icon_color;
             self.title_color = theme.title_color;
             self.menu_text_color = theme.menu_text_color;
+            self.menu_text_size = theme.menu_text_size;
             self.menu_hover_color = theme.menu_hover_color;
+            self.keyboard_selection_color = theme.keyboard_selection_color;
+            self.submenu_background_color = theme.submenu_background_color;
+            self.submenu_text_color = theme.submenu_text_color;
+            self.submenu_text_size = theme.submenu_text_size;
+            self.submenu_hover_color = theme.submenu_hover_color;
+            self.submenu_disabled_color = theme.submenu_disabled_color;
+            self.submenu_shortcut_color = theme.submenu_shortcut_color;
+            self.submenu_border_color = theme.submenu_border_color;
+            self.submenu_keyboard_selection_color = theme.submenu_keyboard_selection_color;
         }
     }
 }

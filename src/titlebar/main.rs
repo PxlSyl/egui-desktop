@@ -173,6 +173,8 @@ pub struct TitleBar {
     pub render_state: RenderState,
     /// Deferred menu leaf action (menu_index, path) so callback runs after releasing menu borrow
     pub pending_menu_leaf_action: Option<(usize, Vec<usize>)>,
+    /// Whether to show the separator line below the title bar (default: true).
+    pub show_bottom_border: bool,
 }
 
 impl TitleBar {
@@ -287,6 +289,7 @@ impl TitleBar {
             recursive_state: KeyboardState::new(),
             render_state: RenderState::new(),
             pending_menu_leaf_action: None,
+            show_bottom_border: options.show_bottom_border.unwrap_or(true),
         };
 
         title_bar
