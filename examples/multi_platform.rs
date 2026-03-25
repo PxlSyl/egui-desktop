@@ -30,7 +30,7 @@ impl eframe::App for MultiPlatformApp {
         // Platform-appropriate title bar with default icon
         TitleBar::new(TitleBarOptions::new().with_title("Multi-Platform Demo"))
             .with_background_color(Color32::from_rgb(35, 35, 35)) // Dark theme
-            .show(ctx);
+            .show(ctx, frame);
 
         // Render resize handles for manual window resizing
         render_resize_handles(ctx);

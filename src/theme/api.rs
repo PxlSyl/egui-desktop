@@ -1,7 +1,9 @@
 use egui::{Color32, Context};
 
-use crate::TitleBar;
-use crate::theme::{ThemeError, ThemeMode, ThemeProvider, TitleBarTheme, detect_system_dark_mode};
+use crate::{
+    TitleBar,
+    theme::{ThemeError, ThemeMode, ThemeProvider, TitleBarTheme, detect_system_dark_mode},
+};
 
 impl TitleBar {
     /// Attach a ThemeProvider to this TitleBar

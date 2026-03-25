@@ -97,6 +97,8 @@ pub struct TitleBar {
     pub theme_mode: ThemeMode,
     /// Whether to display title on macOS.
     pub show_title_on_macos: bool,
+    /// Cached maximize button rectangle for Windows snap layouts
+    pub maximize_button_rect: Option<egui::Rect>,
     /// Whether to display title on Windows.
     pub show_title_on_windows: bool,
     /// Whether to display title on Linux.
@@ -290,6 +292,8 @@ impl TitleBar {
             render_state: RenderState::new(),
             pending_menu_leaf_action: None,
             show_bottom_border: options.show_bottom_border.unwrap_or(true),
+            // Windows snap layouts support
+            maximize_button_rect: None,
         };
 
         title_bar
@@ -369,6 +373,16 @@ impl TitleBar {
         }
 
         total_width
+    }
+
+    /// Get the cached maximize button rectangle for Windows snap layouts
+    pub fn get_maximize_button_rect(&self) -> Option<Rect> {
+        self.maximize_button_rect
+    }
+
+    /// Set the maximize button rectangle (used internally for Windows snap layouts)
+    pub fn set_maximize_button_rect(&mut self, rect: Rect) {
+        self.maximize_button_rect = Some(rect);
     }
 }
 

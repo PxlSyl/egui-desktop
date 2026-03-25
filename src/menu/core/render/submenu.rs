@@ -1,9 +1,10 @@
 use egui::{Area, Context, FontId, Id, Order, Pos2, Rect, Vec2};
 use std::{cell::RefCell, sync::atomic::Ordering};
 
-use crate::{TitleBar, menu::items::MenuItem, titlebar::render_bar::title_bar_height};
-
-use crate::menu::core::states::globals::{MENU_STATE, SUBMENU_CLICK_COUNTER};
+use crate::{
+    menu::core::states::globals::{MENU_STATE, SUBMENU_CLICK_COUNTER},
+    {TitleBar, menu::items::MenuItem, titlebar::render_bar::title_bar_height},
+};
 
 /// Structure to store menu rendering information for proper z-order (used by submenu_overlay).
 /// `path_prefix` is the path from root to this overlay (e.g. [1] for first cascade, [1, 0] for nested).

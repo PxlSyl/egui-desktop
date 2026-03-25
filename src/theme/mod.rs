@@ -1,7 +1,9 @@
 use egui::{Color32, Visuals};
-
+use std::process::Command;
 /// Public API helpers for working with themes.
 pub mod api;
+
+pub use ThemeMode::*;
 
 /// Theme mode selection for the title bar and related UI.
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -238,14 +240,10 @@ impl TitleBarTheme {
     }
 }
 
-pub use ThemeMode::*;
-
 /// Detect if the system is using dark mode.
 pub fn detect_system_dark_mode() -> bool {
     #[cfg(target_os = "windows")]
     {
-        use std::process::Command;
-
         // On Windows, check the registry for the system theme
         match Command::new("reg")
             .args(&["query", "HKEY_CURRENT_USER\\Software\\Microsoft\\Windows\\CurrentVersion\\Themes\\Personalize", "/v", "AppsUseLightTheme"])
@@ -262,8 +260,6 @@ pub fn detect_system_dark_mode() -> bool {
 
     #[cfg(target_os = "macos")]
     {
-        use std::process::Command;
-
         // On macOS, check the system appearance
         match Command::new("defaults")
             .args(&["read", "-g", "AppleInterfaceStyle"])
@@ -279,8 +275,6 @@ pub fn detect_system_dark_mode() -> bool {
 
     #[cfg(target_os = "linux")]
     {
-        use std::process::Command;
-
         // On Linux, try to detect via gsettings (GNOME)
         if let Ok(output) = Command::new("gsettings")
             .args(&["get", "org.gnome.desktop.interface", "gtk-theme"])

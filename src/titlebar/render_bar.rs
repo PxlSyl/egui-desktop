@@ -3,6 +3,8 @@ use egui::{
     Rect, Rgba, Sense, TextStyle, TopBottomPanel, Vec2, ViewportCommand, vec2,
 };
 
+use raw_window_handle::HasWindowHandle;
+
 use crate::{TitleBar, titlebar::control_buttons::WindowControlIcon};
 
 /// Get the title bar height based on the platform.
@@ -29,19 +31,20 @@ impl TitleBar {
     ///
     /// # Arguments
     /// * `ctx` - The egui context
+    /// * `frame` - The eframe frame for window operations
     ///
     /// # Examples
     ///
     /// ```rust
     /// fn update(&mut self, ctx: &Context, frame: &mut eframe::Frame) {
-    ///     self.title_bar.show(ctx);
+    ///     self.title_bar.show(ctx, frame);
     ///     
     ///     CentralPanel::default().show(ctx, |ui| {
     ///         ui.label("Main content");
     ///     });
     /// }
     /// ```
-    pub fn show(&mut self, ctx: &Context) {
+    pub fn show(&mut self, ctx: &Context, frame: &eframe::Frame) {
         #[cfg(target_os = "macos")]
         {
             self.render_macos_title_bar(ctx);
@@ -49,7 +52,26 @@ impl TitleBar {
 
         #[cfg(not(target_os = "macos"))]
         {
-            self.render_generic_title_bar(ctx);
+            self.render_generic_title_bar(ctx, frame);
+        }
+    }
+
+    /// Show title bar without requiring a frame (thread-safe for show_viewport_deferred)
+    /// 
+    /// This method is designed specifically for use in show_viewport_deferred closures (secondary windows)
+    /// where frame cannot be captured due to thread safety constraints.
+    /// 
+    /// On macOS: Uses full render_macos_title_bar implementation
+    /// On Windows11: Renders a title bar without snap layout menu.
+    pub fn show_without_frame(&mut self, ctx: &Context) {
+        #[cfg(target_os = "macos")]
+        {
+            self.render_macos_title_bar(ctx);
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        {
+           self.render_generic_title_bar_without_frame(ctx);
         }
     }
 
@@ -261,7 +283,20 @@ impl TitleBar {
     }
 
     /// Render a platform-generic title bar (Windows/Linux-style).
-    pub fn render_generic_title_bar(&mut self, ctx: &Context) {
+    pub fn render_generic_title_bar(&mut self, ctx: &Context, frame: &eframe::Frame) {
+        self.render_generic_title_bar_internal(ctx, Some(frame));
+    }
+
+    /// Render a platform-generic title bar without frame (Windows/Linux-style) and without snap layout (windows11).
+    pub fn render_generic_title_bar_without_frame(&mut self, ctx: &Context) {
+        self.render_generic_title_bar_internal(ctx, None);
+    }
+
+    /// Internal implementation for generic title bar rendering
+    /// 
+    /// This method contains all the common code between the frame and no-frame versions.
+    /// The only difference is the Windows Snap Layouts support which requires a frame.
+    fn render_generic_title_bar_internal(&mut self, ctx: &Context, frame: Option<&eframe::Frame>) {
         let content_rect = ctx.content_rect();
         if content_rect.width() < 100.0 || content_rect.height() < 100.0 {
             return;
@@ -348,6 +383,8 @@ impl TitleBar {
                     ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                         ui.spacing_mut().item_spacing = Vec2::ZERO;
 
+                        let is_maximized = ctx.input(|i| i.viewport().maximized.unwrap_or(false));
+
                         let close_response = self
                             .render_window_control_button_with_drawn_icon(
                                 ui,
@@ -357,12 +394,6 @@ impl TitleBar {
                                 16.0,
                             )
                             .on_hover_text("Close");
-
-                        if close_response.clicked() {
-                            ctx.send_viewport_cmd(ViewportCommand::Close);
-                        }
-
-                        let is_maximized = ctx.input(|i| i.viewport().maximized.unwrap_or(false));
 
                         let maximize_response = self
                             .render_window_control_button_with_drawn_icon(
@@ -382,10 +413,6 @@ impl TitleBar {
                             )
                             .on_hover_text(if is_maximized { "Restore" } else { "Maximize" });
 
-                        if maximize_response.clicked() {
-                            ctx.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
-                        }
-
                         let minimize_response = self
                             .render_window_control_button_with_drawn_icon(
                                 ui,
@@ -395,6 +422,57 @@ impl TitleBar {
                                 14.0,
                             )
                             .on_hover_text("Minimize");
+
+                        // Windows 11 snap layouts support - fix final avec conversion de coordonnées correcte
+                        #[cfg(target_os = "windows")]
+                        {
+                            // egui détecte le hover → on informe Windows de la zone de TOUS les boutons
+                            if let Some(frame) = frame {
+                                if let Ok(window_handle) = frame.window_handle() {
+                                    let raw_handle: raw_window_handle::RawWindowHandle = window_handle.into();
+                                if let raw_window_handle::RawWindowHandle::Win32(handle) = raw_handle {
+                                    use windows::Win32::Foundation::HWND;
+                                    
+                                    // 🔥 FIX FONDAMENTAL : conversion coordonnées correcte
+                                    let scale = ctx.pixels_per_point();
+                                    
+                                    // Utiliser la nouvelle fonction de conversion correcte
+                                    let maximize_screen_rect = crate::utils::win11_snap_layouts::egui_rect_to_screen(
+                                        HWND(handle.hwnd.get() as *mut core::ffi::c_void),
+                                        maximize_response.rect,
+                                        scale,
+                                    );
+                                    let minimize_screen_rect = crate::utils::win11_snap_layouts::egui_rect_to_screen(
+                                        HWND(handle.hwnd.get() as *mut core::ffi::c_void),
+                                        minimize_response.rect,
+                                        scale,
+                                    );
+                                    let close_screen_rect = crate::utils::win11_snap_layouts::egui_rect_to_screen(
+                                        HWND(handle.hwnd.get() as *mut core::ffi::c_void),
+                                        close_response.rect,
+                                        scale,
+                                    );
+                                    
+                                    eprintln!("DEBUG: All button rects set with correct conversion");
+                                    
+                                    // Informer Windows des zones exactes
+                                    crate::utils::win11_snap_layouts::set_maximize_button_screen_rect(maximize_screen_rect);
+                                    crate::utils::win11_snap_layouts::set_minimize_button_screen_rect(minimize_screen_rect);
+                                    crate::utils::win11_snap_layouts::set_close_button_screen_rect(close_screen_rect);
+
+                                    crate::utils::win11_snap_layouts::initialize_windows_snap_layouts(frame).ok();
+                                    }
+                                }
+                            }
+                        }
+
+                        if close_response.clicked() {
+                            ctx.send_viewport_cmd(ViewportCommand::Close);
+                        }
+
+                        if maximize_response.clicked() {
+                            ctx.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
+                        }
 
                         if minimize_response.clicked() {
                             ctx.send_viewport_cmd(ViewportCommand::Minimized(true));

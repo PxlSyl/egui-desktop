@@ -1,13 +1,13 @@
 //! Overflow indicator (dots / hamburger) and overflow menu overlay.
 
 use egui::{
-    Align2, Area, CornerRadius, CursorIcon, FontId, Id, Order, Pos2, Rect, Sense, Stroke, StrokeKind,
-    Ui, Vec2,
+    Align2, Area, CornerRadius, CursorIcon, FontId, Id, Order, Pos2, Rect, Response, Sense, Stroke,
+    StrokeKind, Ui, Vec2,
 };
 
 use crate::{
-    titlebar::{HamburgerStyle, render_bar::title_bar_height},
     TitleBar,
+    titlebar::{HamburgerStyle, render_bar::title_bar_height},
 };
 
 impl TitleBar {
@@ -17,7 +17,7 @@ impl TitleBar {
         ui: &mut Ui,
         overflow_rect: Rect,
         is_minimal_mode: bool,
-    ) -> egui::Response {
+    ) -> Response {
         let response = ui.interact(overflow_rect, Id::new("overflow"), Sense::click());
 
         let is_keyboard_selected = self.keyboard_navigation_active

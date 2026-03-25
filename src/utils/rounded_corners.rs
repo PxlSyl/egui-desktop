@@ -247,24 +247,24 @@ fn apply_rounded_corners_from_handle(window_handle: raw_window_handle::WindowHan
 
     let ptr: Option<*mut c_void> = match handle {
         RawWindowHandle::Win32(h) => {
-            println!("🪟 Windows: Using Win32 window handle");
+            println!("Windows: Using Win32 window handle");
             Some(h.hwnd.get() as *mut _)
         }
         RawWindowHandle::AppKit(h) => {
-            println!("🍎 macOS: Using AppKit window handle");
+            println!("macOS: Using AppKit window handle");
             Some(h.ns_view.as_ptr() as *mut _)
         }
         RawWindowHandle::Xlib(h) => {
-            println!("🐧 Linux X11: Using Xlib window handle");
+            println!("Linux X11: Using Xlib window handle");
             Some(h.window as *mut _)
         }
         RawWindowHandle::Wayland(h) => {
-            println!("🐧 Linux Wayland: Using Wayland surface handle");
+            println!("Linux Wayland: Using Wayland surface handle");
             Some(h.surface.as_ptr() as *mut _)
         }
         _ => {
             println!(
-                "ℹ️ Platform: Native rounded corners not supported for this window handle type: {:?}",
+                "ℹPlatform: Native rounded corners not supported for this window handle type: {:?}",
                 handle
             );
             None
@@ -273,7 +273,7 @@ fn apply_rounded_corners_from_handle(window_handle: raw_window_handle::WindowHan
 
     if let Some(native_ptr) = ptr {
         match apply_native_rounded_corners(native_ptr) {
-            Ok(_) => println!("🎉 Native rounded corners applied successfully!"),
+            Ok(_) => println!("Native rounded corners applied successfully!"),
             Err(e) => eprintln!("⚠️ Failed to apply native rounded corners: {}", e),
         }
     }

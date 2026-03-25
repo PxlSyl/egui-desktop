@@ -30,7 +30,7 @@ impl eframe::App for MyApp {
                     "window-no-title.svg"
                 )
         )
-        .show(ctx);
+        .show(ctx, frame);
 
         // Render resize handles for manual window resizing
         render_resize_handles(ctx);

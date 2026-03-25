@@ -32,7 +32,7 @@ impl eframe::App for MyApp {
         apply_rounded_corners(frame);
 
         // Render the appropriate title bar for your OS (defaults to light theme)
-        TitleBar::new(TitleBarOptions::new().with_title(&self.name)).show(ctx);
+        TitleBar::new(TitleBarOptions::new().with_title(&self.name)).show(ctx, frame);
 
         // Render resize handles for manual window resizing
         render_resize_handles(ctx);

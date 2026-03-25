@@ -1,6 +1,5 @@
+use crate::{TitleBar, menu::items::MenuItem};
 use egui::{Context, Key};
-
-use crate::TitleBar;
 
 impl TitleBar {
     /// Handle navigation within submenus only (not main menu).
@@ -9,7 +8,7 @@ impl TitleBar {
         &mut self,
         ctx: &Context,
         open_submenu_index: usize,
-        submenu_item: &crate::menu::items::MenuItem,
+        submenu_item: &MenuItem,
     ) -> bool {
         // Get the actual current depth from render state
         let current_depth = self.render_state.get_current_depth();

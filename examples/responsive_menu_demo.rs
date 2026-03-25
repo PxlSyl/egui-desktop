@@ -134,7 +134,7 @@ impl eframe::App for ResponsiveMenuApp {
         render_resize_handles(ctx);
 
         // Render the title bar
-        self.title_bar.show(ctx);
+        self.title_bar.show(ctx, frame);
 
         CentralPanel::default().show(ctx, |ui| {
             ui.heading("Responsive Menu Demo");

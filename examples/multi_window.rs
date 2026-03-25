@@ -73,7 +73,7 @@ impl eframe::App for MultiWindowApp {
         apply_rounded_corners(frame);
 
         // Render main window title bar
-        self.main_title_bar.show(ctx);
+        self.main_title_bar.show(ctx, frame);
 
         // Render resize handles for the main window
         render_resize_handles(ctx);
@@ -164,7 +164,7 @@ impl eframe::App for MultiWindowApp {
             let settings_title_bar = self.settings_title_bar.clone();
             let settings_open = self.settings_open.clone();
 
-            ctx.show_viewport_deferred(viewport_id, viewport_builder, move |ctx, _class| {
+            ctx.show_viewport_deferred(viewport_id, viewport_builder, move |ctx, _frame| {
                 // Check if window was closed by user
                 if ctx.input(|i| i.viewport().close_requested()) {
                     *settings_open.lock().unwrap() = false;
@@ -174,8 +174,8 @@ impl eframe::App for MultiWindowApp {
                 // Apply rounded corners to this viewport (if supported)
                 apply_rounded_corners_to_viewport(ctx);
 
-                // Settings window title bar
-                settings_title_bar.lock().unwrap().show(ctx);
+                // Settings window title bar - thread-safe version
+                settings_title_bar.lock().unwrap().show_without_frame(ctx);
 
                 // Render resize handles for settings window
                 render_resize_handles(ctx);
@@ -245,7 +245,7 @@ impl eframe::App for MultiWindowApp {
             let about_title_bar = self.about_title_bar.clone();
             let about_open = self.about_open.clone();
 
-            ctx.show_viewport_deferred(viewport_id, viewport_builder, move |ctx, _class| {
+            ctx.show_viewport_deferred(viewport_id, viewport_builder, move |ctx, _frame| {
                 // Check if window was closed by user
                 if ctx.input(|i| i.viewport().close_requested()) {
                     *about_open.lock().unwrap() = false;
@@ -255,8 +255,8 @@ impl eframe::App for MultiWindowApp {
                 // Apply rounded corners to this viewport (if supported)
                 apply_rounded_corners_to_viewport(ctx);
 
-                // About window title bar
-                about_title_bar.lock().unwrap().show(ctx);
+                // About window title bar - thread-safe version
+                about_title_bar.lock().unwrap().show_without_frame(ctx);
 
                 // Render resize handles for about window
                 render_resize_handles(ctx);

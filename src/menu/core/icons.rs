@@ -1,6 +1,6 @@
-use egui::{Color32, Painter, Pos2, Rect, Vec2};
-
 use crate::{TitleBar, titlebar::IconAnimationState};
+use egui::{Color32, Painter, Pos2, Rect, Vec2};
+use std::f32::consts::PI;
 
 impl TitleBar {
     /// Draw three dots for overflow indicator
@@ -87,7 +87,7 @@ impl TitleBar {
 
         // Use the animation progress from state (managed by framework)
         let eased_progress = state.progress * state.progress * (3.0 - 2.0 * state.progress); // Smoothstep
-        let rotation_angle = eased_progress * std::f32::consts::PI * 0.25; // 45 degrees rotation
+        let rotation_angle = eased_progress * PI * 0.25; // 45 degrees rotation
 
         // Draw three elements with proper animation
         for i in 0..3 {

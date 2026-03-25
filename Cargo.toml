@@ -1,6 +1,6 @@
 [package]
 name = "egui-desktop"
-version = "0.2.5"
+version = "0.2.6"
 edition = "2024"
 description = "Cross-platform GUI for egui applications"
 license = "MIT"
@@ -39,6 +39,7 @@ windows = { version = "0.62.2", features = [
     "Win32_Foundation",
     "Win32_Graphics_Dwm",
     "Win32_UI_WindowsAndMessaging",
+    "Win32_UI_Input_KeyboardAndMouse",
 ] }
 
 [target.'cfg(target_os = "macos")'.dependencies]

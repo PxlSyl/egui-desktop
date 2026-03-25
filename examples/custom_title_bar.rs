@@ -44,7 +44,7 @@ impl eframe::App for CustomApp {
             .add_menu_item("File", Some(Box::new(|| println!("File menu clicked!"))))
             .add_menu_item("Edit", Some(Box::new(|| println!("Edit menu clicked!"))))
             .add_menu_item("Help", Some(Box::new(|| println!("Help menu clicked!"))))
-            .show(ctx);
+            .show(ctx, frame);
 
         // Render resize handles for manual window resizing
         render_resize_handles(ctx);
