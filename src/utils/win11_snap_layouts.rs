@@ -5,14 +5,14 @@
 use core::ffi::c_void;
 use egui::Rect;
 use raw_window_handle::{HasWindowHandle, RawWindowHandle};
-use std::{mem::transmute, sync::Once};
+use std::{mem::transmute, sync::Once, time::Instant};
 use windows::Win32::{
     Foundation::{HWND, LPARAM, LRESULT, POINT, RECT, WPARAM},
     UI::{
         Input::KeyboardAndMouse::{GetAsyncKeyState, VK_LBUTTON},
         WindowsAndMessaging::{
-            DefWindowProcW, GWLP_WNDPROC, GetWindowLongPtrW, GetWindowRect, HTCAPTION, HTCLIENT,
-            HTMAXBUTTON, SetWindowLongPtrW, WM_NCHITTEST,
+            DefWindowProcW, GWLP_WNDPROC, GetWindowLongPtrW, GetWindowRect, HTCLIENT, HTMAXBUTTON,
+            SetWindowLongPtrW, WM_NCHITTEST,
         },
     },
 };
@@ -25,6 +25,8 @@ static mut ORIGINAL_WNDPROC: Option<
     unsafe extern "system" fn(HWND, u32, WPARAM, LPARAM) -> LRESULT,
 > = None;
 static mut WINDOW_PROC_INSTALLED: bool = false;
+static mut HOVERING_MAXIMIZE: bool = false;
+static mut HOVER_START_TIME: Option<Instant> = None;
 
 /// Set the maximize button screen rectangle directly
 pub fn set_maximize_button_screen_rect(rect: RECT) {
@@ -54,10 +56,11 @@ pub fn egui_rect_to_screen(hwnd: HWND, rect: Rect, scale: f32) -> RECT {
         let _ = GetWindowRect(hwnd, &mut window_rect);
     }
 
-    let border = 8.0 * scale;
+    // Pas de border correction - on veut que les zones soient parfaitement alignées
+    // egui rect est déjà en coordonnées client correctes
 
     let x = window_rect.left as f32 + rect.min.x * scale;
-    let y = window_rect.top as f32 + rect.min.y * scale - border;
+    let y = window_rect.top as f32 + rect.min.y * scale;
     let w = rect.width() * scale;
     let h = rect.height() * scale;
 
@@ -78,7 +81,12 @@ pub fn clear_all_button_screen_rects() {
     }
 }
 
-/// Custom window procedure for handling WM_NCHITTEST
+/// Check if currently hovering over maximize button
+pub fn is_hovering_maximize() -> bool {
+    unsafe { HOVERING_MAXIMIZE }
+}
+
+/// Custom window procedure for handling WM_NCHITTEST - SNAP LAYOUT SEULEMENT SUR BOUTON MAXIMIZE
 unsafe extern "system" fn custom_window_proc(
     hwnd: HWND,
     msg: u32,
@@ -94,69 +102,63 @@ unsafe extern "system" fn custom_window_proc(
                 y: y as i32,
             };
 
+            // Détecter UNIQUEMENT la zone exacte du bouton maximize
+            // PAS de marge, PAS de zone étendue - juste le bouton lui-même
             if let Some(rect) = unsafe { MAXIMIZE_BUTTON_SCREEN_RECT } {
                 let inside = point.x >= rect.left
                     && point.x <= rect.right
                     && point.y >= rect.top
                     && point.y <= rect.bottom;
 
+                // Mettre à jour l'état de hover et le timer
+                unsafe {
+                    if inside {
+                        if HOVERING_MAXIMIZE == false {
+                            // Nouveau hover - démarrer le timer
+                            HOVERING_MAXIMIZE = true;
+                            HOVER_START_TIME = Some(Instant::now());
+                        }
+                    } else {
+                        // Fin du hover - réinitialiser
+                        HOVERING_MAXIMIZE = false;
+                        HOVER_START_TIME = None;
+                    }
+                }
+
                 if inside {
                     let key_state = unsafe { GetAsyncKeyState(VK_LBUTTON.0 as i32) } as i16;
                     let mouse_down = (key_state & 0x8000u16 as i16) != 0;
 
                     if mouse_down {
-                        // Clic → laisser egui gérer
+                        // Clic → laisser egui gérer normalement
                         return LRESULT(HTCLIENT as isize);
                     } else {
-                        // Hover → Snap Layout Windows
-                        return LRESULT(HTMAXBUTTON as isize);
+                        // Hover sur bouton maximize EXACT →
+                        // Vérifier si on a assez de hover pour déclencher le snap layout
+                        unsafe {
+                            if let Some(start_time) = HOVER_START_TIME {
+                                if start_time.elapsed().as_millis() > 500 {
+                                    // 500ms de hover → déclencher le snap layout
+                                    // Retourner HTMAXBUTTON uniquement pour le snap layout
+                                    return LRESULT(HTMAXBUTTON as isize);
+                                }
+                            }
+                        }
+
+                        // Sinon, laisser egui gérer le hover
+                        return LRESULT(HTCLIENT as isize);
                     }
                 }
-            }
-
-            // Handle titlebar drag excluding buttons
-            let titlebar_top = unsafe { MAXIMIZE_BUTTON_SCREEN_RECT.map(|r| r.top).unwrap_or(0) };
-            let titlebar_bottom = titlebar_top + 32;
-
-            if point.y >= titlebar_top && point.y <= titlebar_bottom {
-                let in_minimize_area = unsafe {
-                    MINIMIZE_BUTTON_SCREEN_RECT
-                        .map(|r| {
-                            point.x >= r.left
-                                && point.x <= r.right
-                                && point.y >= r.top
-                                && point.y <= r.bottom
-                        })
-                        .unwrap_or(false)
-                };
-
-                let in_close_area = unsafe {
-                    CLOSE_BUTTON_SCREEN_RECT
-                        .map(|r| {
-                            point.x >= r.left
-                                && point.x <= r.right
-                                && point.y >= r.top
-                                && point.y <= r.bottom
-                        })
-                        .unwrap_or(false)
-                };
-
-                let in_maximize_area = unsafe {
-                    MAXIMIZE_BUTTON_SCREEN_RECT
-                        .map(|r| {
-                            point.x >= r.left
-                                && point.x <= r.right
-                                && point.y >= r.top
-                                && point.y <= r.bottom
-                        })
-                        .unwrap_or(false)
-                };
-
-                if !in_minimize_area && !in_close_area && !in_maximize_area {
-                    return LRESULT(HTCAPTION as isize);
+            } else {
+                // Pas de rectangle défini → réinitialiser le hover
+                unsafe {
+                    HOVERING_MAXIMIZE = false;
+                    HOVER_START_TIME = None;
                 }
             }
 
+            // Pour tout le reste: laisser egui gérer complètement
+            // Pas de logique de titlebar, pas d'exclusions, juste HTCLIENT
             LRESULT(HTCLIENT as isize)
         }
         _ => {

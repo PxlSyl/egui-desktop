@@ -62,7 +62,7 @@ impl TitleBar {
     /// where frame cannot be captured due to thread safety constraints.
     /// 
     /// On macOS: Uses full render_macos_title_bar implementation
-    /// On Windows11: Renders a title bar without snap layout menu.
+    /// On other platforms: Renders a title bar without snap layout.
     pub fn show_without_frame(&mut self, ctx: &Context) {
         #[cfg(target_os = "macos")]
         {
@@ -75,8 +75,9 @@ impl TitleBar {
         }
     }
 
-    /// Render a macOS-style title bar with traffic light controls.
-    pub fn render_macos_title_bar(&mut self, ctx: &Context) {
+    /// Render a macOS-style title bar with native traffic light controls.
+
+pub fn render_macos_title_bar(&mut self, ctx: &Context) {
         let content_rect = ctx.content_rect();
         if content_rect.width() < 100.0 || content_rect.height() < 100.0 {
             return;
@@ -423,44 +424,38 @@ impl TitleBar {
                             )
                             .on_hover_text("Minimize");
 
-                        // Windows 11 snap layouts support - fix final avec conversion de coordonnées correcte
+                        // Windows 11 snap layouts support - UNIQUMENT bouton maximize
                         #[cfg(target_os = "windows")]
                         {
-                            // egui détecte le hover → on informe Windows de la zone de TOUS les boutons
                             if let Some(frame) = frame {
                                 if let Ok(window_handle) = frame.window_handle() {
                                     let raw_handle: raw_window_handle::RawWindowHandle = window_handle.into();
-                                if let raw_window_handle::RawWindowHandle::Win32(handle) = raw_handle {
-                                    use windows::Win32::Foundation::HWND;
-                                    
-                                    // 🔥 FIX FONDAMENTAL : conversion coordonnées correcte
-                                    let scale = ctx.pixels_per_point();
-                                    
-                                    // Utiliser la nouvelle fonction de conversion correcte
-                                    let maximize_screen_rect = crate::utils::win11_snap_layouts::egui_rect_to_screen(
-                                        HWND(handle.hwnd.get() as *mut core::ffi::c_void),
-                                        maximize_response.rect,
-                                        scale,
-                                    );
-                                    let minimize_screen_rect = crate::utils::win11_snap_layouts::egui_rect_to_screen(
-                                        HWND(handle.hwnd.get() as *mut core::ffi::c_void),
-                                        minimize_response.rect,
-                                        scale,
-                                    );
-                                    let close_screen_rect = crate::utils::win11_snap_layouts::egui_rect_to_screen(
-                                        HWND(handle.hwnd.get() as *mut core::ffi::c_void),
-                                        close_response.rect,
-                                        scale,
-                                    );
-                                    
-                                    eprintln!("DEBUG: All button rects set with correct conversion");
-                                    
-                                    // Informer Windows des zones exactes
-                                    crate::utils::win11_snap_layouts::set_maximize_button_screen_rect(maximize_screen_rect);
-                                    crate::utils::win11_snap_layouts::set_minimize_button_screen_rect(minimize_screen_rect);
-                                    crate::utils::win11_snap_layouts::set_close_button_screen_rect(close_screen_rect);
+                                    if let raw_window_handle::RawWindowHandle::Win32(handle) = raw_handle {
+                                        use windows::Win32::Foundation::HWND;
+                                        
+                                        let scale = ctx.pixels_per_point();
+                                        
+                                        // Étendre la zone pour inclure le background hover complet
+                                        // egui utilise généralement une zone de hover plus grande que l'icône
+                                        let mut extended_rect = maximize_response.rect;
+                                        let padding = 4.0; // 4px de padding autour du bouton
+                                        extended_rect.min.x -= padding;
+                                        extended_rect.min.y -= padding;
+                                        extended_rect.max.x += padding;
+                                        extended_rect.max.y += padding;
+                                        
+                                        // UNIQUMENT la zone du bouton maximize pour le snap layout
+                                        let maximize_screen_rect = crate::utils::win11_snap_layouts::egui_rect_to_screen(
+                                            HWND(handle.hwnd.get() as *mut core::ffi::c_void),
+                                            extended_rect,
+                                            scale,
+                                        );
+                                        
+                                        // Nettoyer les autres zones pour éviter toute interférence
+                                        crate::utils::win11_snap_layouts::clear_all_button_screen_rects();
+                                        crate::utils::win11_snap_layouts::set_maximize_button_screen_rect(maximize_screen_rect);
 
-                                    crate::utils::win11_snap_layouts::initialize_windows_snap_layouts(frame).ok();
+                                        crate::utils::win11_snap_layouts::initialize_windows_snap_layouts(frame).ok();
                                     }
                                 }
                             }
@@ -474,7 +469,7 @@ impl TitleBar {
                             ctx.send_viewport_cmd(ViewportCommand::Maximized(!is_maximized));
                         }
 
-                        if minimize_response.clicked() {
+                if minimize_response.clicked() {
                             ctx.send_viewport_cmd(ViewportCommand::Minimized(true));
                         }
 
