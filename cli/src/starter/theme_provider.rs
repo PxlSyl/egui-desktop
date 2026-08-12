@@ -24,6 +24,7 @@ impl SimpleThemeProvider {
             Some(Color32::from_rgb(240, 248, 255)), // submenu background
             Some(Color32::from_rgb(30, 64, 175)),   // submenu text (same as menu text)
             Some(Color32::from_rgb(219, 234, 254)), // submenu hover
+            Some(Color32::from_rgb(100, 100, 100)), // submenu disabled
             Some(Color32::from_rgb(100, 116, 139)), // submenu shortcut
             Some(Color32::from_rgb(59, 130, 246)),  // submenu keyboard selection color
         )
@@ -46,6 +47,7 @@ impl SimpleThemeProvider {
             Some(Color32::from_rgb(30, 30, 46)),    // submenu background
             Some(Color32::from_rgb(191, 219, 254)), // submenu text
             Some(Color32::from_rgb(60, 60, 80)),    // submenu hover
+            Some(Color32::from_rgb(100, 100, 100)), // submenu disabled
             Some(Color32::from_rgb(148, 163, 184)), // submenu shortcut
             Some(Color32::from_rgb(147, 197, 253)), // submenu keyboard selection color
         )
@@ -68,6 +70,7 @@ impl SimpleThemeProvider {
             Some(Color32::from_rgb(239, 246, 239)), // submenu background
             Some(Color32::from_rgb(22, 101, 52)),   // submenu text
             Some(Color32::from_rgb(209, 250, 229)), // submenu hover
+            Some(Color32::from_rgb(100, 100, 100)), // submenu disabled
             Some(Color32::from_rgb(100, 116, 139)), // submenu shortcut
             Some(Color32::from_rgb(16, 185, 129)),  // submenu keyboard selection color
         )
@@ -90,6 +93,7 @@ impl SimpleThemeProvider {
             Some(Color32::from_rgb(20, 30, 20)),    // submenu background
             Some(Color32::from_rgb(187, 247, 208)), // submenu text
             Some(Color32::from_rgb(31, 41, 31)),    // submenu hover
+            Some(Color32::from_rgb(100, 100, 100)), // submenu disabled
             Some(Color32::from_rgb(148, 163, 184)), // submenu shortcut
             Some(Color32::from_rgb(52, 211, 153)),  // submenu keyboard selection color
         )
